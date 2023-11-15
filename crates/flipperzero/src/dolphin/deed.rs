@@ -33,7 +33,7 @@ impl App {
             sys::DolphinApp_DolphinAppNfc => App::Nfc,
             sys::DolphinApp_DolphinAppIr => App::Ir,
             sys::DolphinApp_DolphinAppIbutton => App::Ibutton,
-            sys::DolphinApp_DolphinAppBadusb => App::Badusb,
+            sys::DolphinApp_DolphinAppBadKb => App::Badusb,
             sys::DolphinApp_DolphinAppPlugin => App::Plugin,
             raw => App::Uncategorized(raw),
         }
@@ -46,7 +46,7 @@ impl App {
             App::Nfc => sys::DolphinApp_DolphinAppNfc,
             App::Ir => sys::DolphinApp_DolphinAppIr,
             App::Ibutton => sys::DolphinApp_DolphinAppIbutton,
-            App::Badusb => sys::DolphinApp_DolphinAppBadusb,
+            App::Badusb => sys::DolphinApp_DolphinAppBadKb,
             App::Plugin => sys::DolphinApp_DolphinAppPlugin,
             App::Uncategorized(raw) => raw,
         }
@@ -150,7 +150,7 @@ impl Deed {
             Deed::IbuttonSave => sys::DolphinDeed_DolphinDeedIbuttonSave,
             Deed::IbuttonEmulate => sys::DolphinDeed_DolphinDeedIbuttonEmulate,
             Deed::IbuttonAdd => sys::DolphinDeed_DolphinDeedIbuttonAdd,
-            Deed::BadUsbPlayScript => sys::DolphinDeed_DolphinDeedBadUsbPlayScript,
+            Deed::BadUsbPlayScript => sys::DolphinDeed_DolphinDeedBadKbPlayScript,
             Deed::U2fAuthorized => sys::DolphinDeed_DolphinDeedU2fAuthorized,
             Deed::GpioUartBridge => sys::DolphinDeed_DolphinDeedGpioUartBridge,
             Deed::PluginStart => sys::DolphinDeed_DolphinDeedPluginStart,

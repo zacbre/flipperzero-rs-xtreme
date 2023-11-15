@@ -21,7 +21,7 @@ const TOOLCHAIN: &str = "../../../toolchain/i686-linux/arm-none-eabi/include";
 #[cfg(all(unix, target_arch = "x86_64"))]
 const TOOLCHAIN: &str = "../../../toolchain/x86_64-linux/arm-none-eabi/include";
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
-const TOOLCHAIN: &str = "../../../toolchain/x86_64-darwin/arm-none-eabi/include";
+const TOOLCHAIN: &str = "~/.ufbt/toolchain/x86_64-darwin/arm-none-eabi/include";
 const VISIBILITY_PUBLIC: &str = "+";
 
 #[derive(Debug)]
