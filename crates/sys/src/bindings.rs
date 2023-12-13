@@ -110,7 +110,7 @@ impl<T> ::core::fmt::Debug for __IncompleteArrayField<T> {
         fmt.write_str("__IncompleteArrayField")
     }
 }
-pub const API_VERSION: u32 = 2883584;
+pub const API_VERSION: u32 = 3211265;
 pub type wint_t = core::ffi::c_int;
 pub type __uint_least8_t = core::ffi::c_uchar;
 pub type __uint_least16_t = core::ffi::c_ushort;
@@ -1604,6 +1604,9 @@ extern "C" {
     pub fn atoi(__nptr: *const core::ffi::c_char) -> core::ffi::c_int;
 }
 extern "C" {
+    pub fn calloc(arg1: core::ffi::c_uint, arg2: core::ffi::c_uint) -> *mut core::ffi::c_void;
+}
+extern "C" {
     pub fn free(arg1: *mut core::ffi::c_void);
 }
 extern "C" {
@@ -2374,6 +2377,10 @@ extern "C" {
     pub fn furi_record_create(name: *const core::ffi::c_char, data: *mut core::ffi::c_void);
 }
 extern "C" {
+    #[doc = "Destroy record\n\nReturns:\n\n* true if successful, false if still have holders or thread is not owner.\n\n# Arguments\n\n* `name` - record name\n\n# Notes\n\n* Thread safe. Create and destroy must be executed from the same thread.\n\n"]
+    pub fn furi_record_destroy(name: *const core::ffi::c_char) -> bool;
+}
+extern "C" {
     #[doc = "Open record\n\nReturns:\n\n* pointer to the record\n\n# Arguments\n\n* `name` - record name\n\n# Notes\n\n* Thread safe. Open and close must be executed from the same thread. Suspends caller thread till record is available\n\n"]
     pub fn furi_record_open(name: *const core::ffi::c_char) -> *mut core::ffi::c_void;
 }
@@ -2423,19 +2430,19 @@ extern "C" {
     pub fn furi_timer_free(instance: *mut FuriTimer);
 }
 extern "C" {
-    #[doc = "Start timer\n\nReturns:\n\n* The furi status.\n\n# Arguments\n\n* `instance` - The pointer to FuriTimer instance\n* `ticks` - [Direction: In] The interval in ticks\n\n"]
+    #[doc = "Start timer\n\n**Warning!**\n\n* This is asynchronous call, real operation will happen as soon as timer service process this request.\n\nReturns:\n\n* The furi status.\n\n# Arguments\n\n* `instance` - The pointer to FuriTimer instance\n* `ticks` - [Direction: In] The interval in ticks\n\n"]
     pub fn furi_timer_start(instance: *mut FuriTimer, ticks: u32) -> FuriStatus;
 }
 extern "C" {
-    #[doc = "Restart timer with previous timeout value\n\nReturns:\n\n* The furi status.\n\n# Arguments\n\n* `instance` - The pointer to FuriTimer instance\n* `ticks` - [Direction: In] The interval in ticks\n\n"]
+    #[doc = "Restart timer with previous timeout value\n\n**Warning!**\n\n* This is asynchronous call, real operation will happen as soon as timer service process this request.\n\nReturns:\n\n* The furi status.\n\n# Arguments\n\n* `instance` - The pointer to FuriTimer instance\n* `ticks` - [Direction: In] The interval in ticks\n\n"]
     pub fn furi_timer_restart(instance: *mut FuriTimer, ticks: u32) -> FuriStatus;
 }
 extern "C" {
-    #[doc = "Stop timer\n\nReturns:\n\n* The furi status.\n\n# Arguments\n\n* `instance` - The pointer to FuriTimer instance\n\n"]
+    #[doc = "Stop timer\n\n**Warning!**\n\n* This is asynchronous call, real operation will happen as soon as timer service process this request.\n\nReturns:\n\n* The furi status.\n\n# Arguments\n\n* `instance` - The pointer to FuriTimer instance\n\n"]
     pub fn furi_timer_stop(instance: *mut FuriTimer) -> FuriStatus;
 }
 extern "C" {
-    #[doc = "Is timer running\n\nReturns:\n\n* 0: not running, 1: running\n\n# Arguments\n\n* `instance` - The pointer to FuriTimer instance\n\n"]
+    #[doc = "Is timer running\n\n**Warning!**\n\n* This cal may and will return obsolete timer state if timer commands are still in the queue. Please read FreeRTOS timer documentation first.\n\nReturns:\n\n* 0: not running, 1: running\n\n# Arguments\n\n* `instance` - The pointer to FuriTimer instance\n\n"]
     pub fn furi_timer_is_running(instance: *mut FuriTimer) -> u32;
 }
 extern "C" {
@@ -10122,6 +10129,15 @@ extern "C" {
     pub fn furi_hal_nfc_iso15693_listener_tx_sof() -> FuriHalNfcError;
 }
 extern "C" {
+    #[doc = "Set FeliCa collision resolution parameters in listener mode.\n\nConfigures the NFC hardware for automatic collision resolution.\n\nReturns:\n\n* NfcErrorNone on success, any other error code on failure.\n\n# Arguments\n\n* `idm` - [Direction: In] pointer to a byte array containing the IDm.\n* `idm_len` - [Direction: In] IDm length in bytes.\n* `pmm` - [Direction: In] pointer to a byte array containing the PMm.\n* `pmm_len` - [Direction: In] PMm length in bytes.\n\n"]
+    pub fn furi_hal_nfc_felica_listener_set_sensf_res_data(
+        idm: *const u8,
+        idm_len: u8,
+        pmm: *const u8,
+        pmm_len: u8,
+    ) -> FuriHalNfcError;
+}
+extern "C" {
     #[doc = "Transfer execution to address\n\n# Arguments\n\n* `address` - [Direction: In] pointer to new executable\n\n"]
     pub fn furi_hal_switch(address: *mut core::ffi::c_void);
 }
@@ -10736,19 +10752,19 @@ pub struct Storage {
     _unused: [u8; 0],
 }
 extern "C" {
-    #[doc = "Allocates and initializes a file descriptor\n\nReturns:\n\n* File*\n\n"]
+    #[doc = "Allocate and initialize a file instance.\n\nReturns:\n\n* pointer to the created instance.\n\n# Arguments\n\n* `storage` - pointer to a storage API instance.\n\n"]
     pub fn storage_file_alloc(storage: *mut Storage) -> *mut File;
 }
 extern "C" {
-    #[doc = "Frees the file descriptor. Closes the file if it was open.\n\n"]
+    #[doc = "Free the file instance.\n\nIf the file was open, calling this function will close it automatically.\n\n# Arguments\n\n* `file` - pointer to the file instance to be freed.\n\n"]
     pub fn storage_file_free(file: *mut File);
 }
 extern "C" {
-    #[doc = "Get storage pubsub. Storage will send StorageEvent messages.\n\nReturns:\n\n* FuriPubSub*\n\n# Arguments\n\n* `storage` - \n\n"]
+    #[doc = "Get the storage pubsub instance.\n\nStorage will send StorageEvent messages.\n\nReturns:\n\n* pointer to the pubsub instance.\n\n# Arguments\n\n* `storage` - pointer to a storage API instance.\n\n"]
     pub fn storage_get_pubsub(storage: *mut Storage) -> *mut FuriPubSub;
 }
 extern "C" {
-    #[doc = "Opens an existing file or create a new one.\n\nReturns:\n\n* success flag. You need to close the file even if the open operation failed.\n\n# Arguments\n\n* `file` - pointer to file object.\n* `path` - path to file\n* `access_mode` - access mode from FS_AccessMode\n* `open_mode` - open mode from FS_OpenMode\n\n"]
+    #[doc = "Open an existing file or create a new one.\n\n**Warning!**\n\n* The calling code MUST call storage_file_close() even if the open operation had failed.\n\nReturns:\n\n* true if the file was successfully opened, false otherwise.\n\n# Arguments\n\n* `file` - pointer to the file instance to be opened.\n* `path` - pointer to a zero-terminated string containing the path to the file to be opened.\n* `access_mode` - access mode from FS_AccessMode.\n* `open_mode` - open mode from FS_OpenMode\n\n"]
     pub fn storage_file_open(
         file: *mut File,
         path: *const core::ffi::c_char,
@@ -10757,79 +10773,83 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
-    #[doc = "Close the file.\n\nReturns:\n\n* success flag\n\n# Arguments\n\n* `file` - pointer to a file object, the file object will be freed.\n\n"]
+    #[doc = "Close the file.\n\nReturns:\n\n* true if the file was successfully closed, false otherwise.\n\n# Arguments\n\n* `file` - pointer to the file instance to be closed.\n\n"]
     pub fn storage_file_close(file: *mut File) -> bool;
 }
 extern "C" {
-    #[doc = "Tells if the file is open\n\nReturns:\n\n* bool true if file is open\n\n# Arguments\n\n* `file` - pointer to a file object\n\n"]
+    #[doc = "Check whether the file is open.\n\nReturns:\n\n* true if the file is open, false otherwise.\n\n# Arguments\n\n* `file` - pointer to the file instance in question.\n\n"]
     pub fn storage_file_is_open(file: *mut File) -> bool;
 }
 extern "C" {
-    #[doc = "Tells if the file is a directory\n\nReturns:\n\n* bool true if file is a directory\n\n# Arguments\n\n* `file` - pointer to a file object\n\n"]
+    #[doc = "Check whether a file instance represents a directory.\n\nReturns:\n\n* true if the file instance represents a directory, false otherwise.\n\n# Arguments\n\n* `file` - pointer to the file instance in question.\n\n"]
     pub fn storage_file_is_dir(file: *mut File) -> bool;
 }
 extern "C" {
-    #[doc = "Reads bytes from a file into a buffer\n\nReturns:\n\n* uint16_t how many bytes were actually read\n\n# Arguments\n\n* `file` - pointer to file object.\n* `buff` - pointer to a buffer, for reading\n* `bytes_to_read` - how many bytes to read. Must be less than or equal to the size of the buffer.\n\n"]
+    #[doc = "Read bytes from a file into a buffer.\n\nReturns:\n\n* actual number of bytes read (may be fewer than requested).\n\n# Arguments\n\n* `file` - pointer to the file instance to read from.\n* `buff` - pointer to the buffer to be filled with read data.\n* `bytes_to_read` - number of bytes to read. Must be less than or equal to the size of the buffer.\n\n"]
     pub fn storage_file_read(
         file: *mut File,
         buff: *mut core::ffi::c_void,
-        bytes_to_read: u16,
-    ) -> u16;
+        bytes_to_read: usize,
+    ) -> usize;
 }
 extern "C" {
-    #[doc = "Writes bytes from a buffer to a file\n\nReturns:\n\n* uint16_t how many bytes were actually written\n\n# Arguments\n\n* `file` - pointer to file object.\n* `buff` - pointer to buffer, for writing\n* `bytes_to_write` - how many bytes to write. Must be less than or equal to the size of the buffer.\n\n"]
+    #[doc = "Write bytes from a buffer to a file.\n\nReturns:\n\n* actual number of bytes written (may be fewer than requested).\n\n# Arguments\n\n* `file` - pointer to the file instance to write into.\n* `buff` - pointer to the buffer containing the data to be written.\n* `bytes_to_write` - number of bytes to write. Must be less than or equal to the size of the buffer.\n\n"]
     pub fn storage_file_write(
         file: *mut File,
         buff: *const core::ffi::c_void,
-        bytes_to_write: u16,
-    ) -> u16;
+        bytes_to_write: usize,
+    ) -> usize;
 }
 extern "C" {
-    #[doc = "Moves the r/w pointer\n\nReturns:\n\n* success flag\n\n# Arguments\n\n* `file` - pointer to file object.\n* `offset` - offset to move the r/w pointer\n* `from_start` - set an offset from the start or from the current position\n\n"]
+    #[doc = "Change the current access position in a file.\n\nReturns:\n\n* success flag\n\n# Arguments\n\n* `file` - pointer to the file instance in question.\n* `offset` - access position offset (meaning depends on from_start parameter).\n* `from_start` - if true, set the access position relative to the file start, otherwise relative to the current position.\n\n"]
     pub fn storage_file_seek(file: *mut File, offset: u32, from_start: bool) -> bool;
 }
 extern "C" {
-    #[doc = "Gets the position of the r/w pointer\n\nReturns:\n\n* uint64_t position of the r/w pointer\n\n# Arguments\n\n* `file` - pointer to file object.\n\n"]
+    #[doc = "Get the current access position.\n\nReturns:\n\n* current access position.\n\n# Arguments\n\n* `file` - pointer to the file instance in question.\n\n"]
     pub fn storage_file_tell(file: *mut File) -> u64;
 }
 extern "C" {
-    #[doc = "Expand the file (allocate space for it)\n\nReturns:\n\n* success flag\n\n# Arguments\n\n* `file` - pointer to file object.\n* `size` - how many bytes to allocate\n\n"]
+    #[doc = "Expand the file (allocate space for it).\n\nReturns:\n\n* true if the file was successfully expanded, false otherwise.\n\n# Arguments\n\n* `file` - pointer to the file instance to be expanded.\n* `size` - amount of bytes bytes to allocate.\n\n"]
     pub fn storage_file_expand(file: *mut File, size: u64) -> bool;
 }
 extern "C" {
-    #[doc = "Truncates the file size to the current position of the r/w pointer\n\nReturns:\n\n* bool success flag\n\n# Arguments\n\n* `file` - pointer to file object.\n\n"]
+    #[doc = "Truncate the file size to the current access position.\n\nReturns:\n\n* true if the file was successfully truncated, false otherwise.\n\n# Arguments\n\n* `file` - pointer to the file instance to be truncated.\n\n"]
     pub fn storage_file_truncate(file: *mut File) -> bool;
 }
 extern "C" {
-    #[doc = "Gets the size of the file\n\nReturns:\n\n* uint64_t size of the file\n\n# Arguments\n\n* `file` - pointer to file object.\n\n"]
+    #[doc = "Get the file size.\n\nReturns:\n\n* size of the file, in bytes.\n\n# Arguments\n\n* `file` - pointer to the file instance in question.\n\n"]
     pub fn storage_file_size(file: *mut File) -> u64;
 }
 extern "C" {
-    #[doc = "Writes file cache to storage\n\nReturns:\n\n* bool success flag\n\n# Arguments\n\n* `file` - pointer to file object.\n\n"]
+    #[doc = "Synchronise the file cache with the actual storage.\n\nReturns:\n\n* true if the file was successfully synchronised, false otherwise.\n\n# Arguments\n\n* `file` - pointer to the file instance in question.\n\n"]
     pub fn storage_file_sync(file: *mut File) -> bool;
 }
 extern "C" {
-    #[doc = "Checks that the r/w pointer is at the end of the file\n\nReturns:\n\n* bool success flag\n\n# Arguments\n\n* `file` - pointer to file object.\n\n"]
+    #[doc = "Check whether the current access position is at the end of the file.\n\nReturns:\n\n* bool true if the current access position is at the end of the file, false otherwise.\n\n# Arguments\n\n* `file` - pointer to a file instance in question.\n\n"]
     pub fn storage_file_eof(file: *mut File) -> bool;
 }
 extern "C" {
-    #[doc = "Check that file exists\n\nReturns:\n\n* true if file exists\n\n# Arguments\n\n* `storage` - \n* `path` - \n\n"]
+    #[doc = "Check whether a file exists.\n\nReturns:\n\n* true if the file exists, false otherwise.\n\n# Arguments\n\n* `storage` - pointer to a storage API instance.\n* `path` - pointer to a zero-terminated string containing the path to the file in question.\n\n"]
     pub fn storage_file_exists(storage: *mut Storage, path: *const core::ffi::c_char) -> bool;
 }
 extern "C" {
-    #[doc = "Copy data from one opened file to another opened file Size bytes will be copied from current position of source file to current position of destination file\n\nReturns:\n\n* bool success flag\n\n# Arguments\n\n* `source` - source file\n* `destination` - destination file\n* `size` - size of data to copy\n\n"]
-    pub fn storage_file_copy_to_file(source: *mut File, destination: *mut File, size: u32) -> bool;
+    #[doc = "Copy data from a source file to the destination file.\n\nBoth files must be opened prior to calling this function.\nThe requested amount of bytes will be copied from the current access position in the source file to the current access position in the destination file.\n\nReturns:\n\n* true if the data was successfully copied, false otherwise.\n\n# Arguments\n\n* `source` - pointer to a source file instance.\n* `destination` - pointer to a destination file instance.\n* `size` - data size to be copied, in bytes.\n\n"]
+    pub fn storage_file_copy_to_file(
+        source: *mut File,
+        destination: *mut File,
+        size: usize,
+    ) -> bool;
 }
 extern "C" {
-    #[doc = "Opens a directory to get objects from it\n\nReturns:\n\n* bool success flag. You need to close the directory even if the open operation failed.\n\n# Arguments\n\n* `app` - pointer to the api\n* `file` - pointer to file object.\n* `path` - path to directory\n\n"]
+    #[doc = "Open a directory.\n\nOpening a directory is necessary to be able to read its contents with storage_dir_read().\n\n**Warning!**\n\n* The calling code MUST call storage_dir_close() even if the open operation had failed.\n\nReturns:\n\n* true if the directory was successfully opened, false otherwise.\n\n# Arguments\n\n* `file` - pointer to a file instance representing the directory in question.\n* `path` - pointer to a zero-terminated string containing the path of the directory in question.\n\n"]
     pub fn storage_dir_open(file: *mut File, path: *const core::ffi::c_char) -> bool;
 }
 extern "C" {
-    #[doc = "Close the directory. Also free file handle structure and point it to the NULL.\n\nReturns:\n\n* bool success flag\n\n# Arguments\n\n* `file` - pointer to a file object.\n\n"]
+    #[doc = "Close the directory.\n\nReturns:\n\n* true if the directory was successfully closed, false otherwise.\n\n# Arguments\n\n* `file` - pointer to a file instance representing the directory in question.\n\n"]
     pub fn storage_dir_close(file: *mut File) -> bool;
 }
 extern "C" {
-    #[doc = "Reads the next object in the directory\n\nReturns:\n\n* success flag (if the next object does not exist, it also returns false and sets the file error id to FSE_NOT_EXIST)\n\n# Arguments\n\n* `file` - pointer to file object.\n* `fileinfo` - pointer to the read FileInfo, may be NULL\n* `name` - pointer to name buffer, may be NULL\n* `name_length` - name buffer length\n\n"]
+    #[doc = "Get the next item in the directory.\n\nIf the next object does not exist, this function returns false as well and sets the file error id to FSE_NOT_EXIST.\n\nReturns:\n\n* true if the next item was successfully read, false otherwise.\n\n# Arguments\n\n* `file` - pointer to a file instance representing the directory in question.\n* `fileinfo` - pointer to the FileInfo structure to contain the info (may be NULL).\n* `name` - pointer to the buffer to contain the name (may be NULL).\n* `name_length` - maximum capacity of the name buffer, in bytes.\n\n"]
     pub fn storage_dir_read(
         file: *mut File,
         fileinfo: *mut FileInfo,
@@ -10838,11 +10858,11 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
-    #[doc = "Check that dir exists\n\nReturns:\n\n* bool\n\n# Arguments\n\n* `storage` - \n* `path` - \n\n"]
+    #[doc = "Check whether a directory exists.\n\nReturns:\n\n* true if the directory exists, false otherwise.\n\n# Arguments\n\n* `storage` - pointer to a storage API instance.\n* `path` - pointer to a zero-terminated string containing the path of the directory in question.\n\n"]
     pub fn storage_dir_exists(storage: *mut Storage, path: *const core::ffi::c_char) -> bool;
 }
 extern "C" {
-    #[doc = "Retrieves unix timestamp of last access\n\nReturns:\n\n* FS_Error operation result\n\n# Arguments\n\n* `storage` - The storage instance\n* `path` - path to file/directory\n* `timestamp` - the timestamp pointer\n\n"]
+    #[doc = "Get the last access time in UNIX format.\n\nReturns:\n\n* FSE_OK if the timestamp has been successfully received, any other error code on failure.\n\n# Arguments\n\n* `storage` - pointer to a storage API instance.\n* `path` - pointer to a zero-terminated string containing the path of the item in question.\n* `timestamp` - pointer to a value to contain the timestamp.\n\n"]
     pub fn storage_common_timestamp(
         storage: *mut Storage,
         path: *const core::ffi::c_char,
@@ -10850,7 +10870,7 @@ extern "C" {
     ) -> FS_Error;
 }
 extern "C" {
-    #[doc = "Retrieves information about a file/directory\n\nReturns:\n\n* FS_Error operation result\n\n# Arguments\n\n* `app` - pointer to the api\n* `path` - path to file/directory\n* `fileinfo` - pointer to the read FileInfo, may be NULL\n\n"]
+    #[doc = "Get information about a file or a directory.\n\nReturns:\n\n* FSE_OK if the info has been successfully received, any other error code on failure.\n\n# Arguments\n\n* `storage` - pointer to a storage API instance.\n* `path` - pointer to a zero-terminated string containing the path of the item in question.\n* `fileinfo` - pointer to the FileInfo structure to contain the info (may be NULL).\n\n"]
     pub fn storage_common_stat(
         storage: *mut Storage,
         path: *const core::ffi::c_char,
@@ -10858,12 +10878,12 @@ extern "C" {
     ) -> FS_Error;
 }
 extern "C" {
-    #[doc = "Removes a file/directory from the repository, the directory must be empty and the file/directory must not be open\n\nReturns:\n\n* FS_Error operation result\n\n# Arguments\n\n* `app` - pointer to the api\n* `path` - \n\n"]
+    #[doc = "Remove a file or a directory.\n\nThe directory must be empty. The file or the directory must NOT be open.\n\nReturns:\n\n* FSE_OK if the file or directory has been successfully removed, any other error code on failure.\n\n# Arguments\n\n* `storage` - pointer to a storage API instance.\n* `path` - pointer to a zero-terminated string containing the path of the item to be removed.\n\n"]
     pub fn storage_common_remove(storage: *mut Storage, path: *const core::ffi::c_char)
         -> FS_Error;
 }
 extern "C" {
-    #[doc = "Renames file/directory, file/directory must not be open\n\nReturns:\n\n* FS_Error operation result\n\n# Arguments\n\n* `app` - pointer to the api\n* `old_path` - old path\n* `new_path` - new path\n\n"]
+    #[doc = "Rename a file or a directory.\n\nThe file or the directory must NOT be open. Will overwrite the destination file if it already exists.\nRenaming a regular file to itself does nothing and always succeeds. Renaming a directory to itself or to a subdirectory of itself always fails.\n\nReturns:\n\n* FSE_OK if the file or directory has been successfully renamed, any other error code on failure.\n\n# Arguments\n\n* `storage` - pointer to a storage API instance.\n* `old_path` - pointer to a zero-terminated string containing the source path.\n* `new_path` - pointer to a zero-terminated string containing the destination path.\n\n"]
     pub fn storage_common_rename(
         storage: *mut Storage,
         old_path: *const core::ffi::c_char,
@@ -10871,15 +10891,15 @@ extern "C" {
     ) -> FS_Error;
 }
 extern "C" {
-    #[doc = "Moves file/directory, file/directory must not be open, will overwrite existing destination\n\nReturns:\n\n* FS_Error operation result\n\n# Arguments\n\n* `app` - pointer to the api\n* `old_path` - old path\n* `new_path` - new path\n\n"]
-    pub fn storage_common_move(
+    #[doc = "Rename a file or a directory.\n\nThe file or the directory must NOT be open. Will error FSE_EXIST if the destination file already exists.\nRenaming a regular file to itself does nothing and always succeeds. Renaming a directory to itself or to a subdirectory of itself always fails.\n\nReturns:\n\n* FSE_OK if the file or directory has been successfully renamed, any other error code on failure.\n\n# Arguments\n\n* `storage` - pointer to a storage API instance.\n* `old_path` - pointer to a zero-terminated string containing the source path.\n* `new_path` - pointer to a zero-terminated string containing the destination path.\n\n"]
+    pub fn storage_common_rename_safe(
         storage: *mut Storage,
         old_path: *const core::ffi::c_char,
         new_path: *const core::ffi::c_char,
     ) -> FS_Error;
 }
 extern "C" {
-    #[doc = "Copy file, file must not be open\n\nReturns:\n\n* FS_Error operation result\n\n# Arguments\n\n* `app` - pointer to the api\n* `old_path` - old path\n* `new_path` - new path\n\n"]
+    #[doc = "Copy the file to a new location.\n\nThe file must NOT be open at the time of calling this function.\n\nReturns:\n\n* FSE_OK if the file has been successfully copied, any other error code on failure.\n\n# Arguments\n\n* `storage` - pointer to a storage API instance.\n* `old_path` - pointer to a zero-terminated string containing the source path.\n* `new_path` - pointer to a zero-terminated string containing the destination path.\n\n"]
     pub fn storage_common_copy(
         storage: *mut Storage,
         old_path: *const core::ffi::c_char,
@@ -10887,7 +10907,7 @@ extern "C" {
     ) -> FS_Error;
 }
 extern "C" {
-    #[doc = "Copy one folder contents into another with rename of all conflicting files\n\nReturns:\n\n* FS_Error operation result\n\n# Arguments\n\n* `app` - pointer to the api\n* `old_path` - old path\n* `new_path` - new path\n\n"]
+    #[doc = "Copy the contents of one directory into another and rename all conflicting files.\n\nReturns:\n\n* FSE_OK if the directories have been successfully merged, any other error code on failure.\n\n# Arguments\n\n* `storage` - pointer to a storage API instance.\n* `old_path` - pointer to a zero-terminated string containing the source path.\n* `new_path` - pointer to a zero-terminated string containing the destination path.\n\n"]
     pub fn storage_common_merge(
         storage: *mut Storage,
         old_path: *const core::ffi::c_char,
@@ -10895,11 +10915,11 @@ extern "C" {
     ) -> FS_Error;
 }
 extern "C" {
-    #[doc = "Creates a directory\n\nReturns:\n\n* FS_Error operation result\n\n# Arguments\n\n* `app` - pointer to the api\n* `path` - directory path\n\n"]
+    #[doc = "Create a directory.\n\nReturns:\n\n* FSE_OK if the directory has been successfully created, any other error code on failure.\n\n# Arguments\n\n* `storage` - pointer to a storage API instance.\n* `fs_path` - pointer to a zero-terminated string containing the directory path.\n\n"]
     pub fn storage_common_mkdir(storage: *mut Storage, path: *const core::ffi::c_char) -> FS_Error;
 }
 extern "C" {
-    #[doc = "Gets general information about the storage\n\nReturns:\n\n* FS_Error operation result\n\n# Arguments\n\n* `app` - pointer to the api\n* `fs_path` - the path to the storage of interest\n* `total_space` - pointer to total space record, will be filled\n* `free_space` - pointer to free space record, will be filled\n\n"]
+    #[doc = "Get the general information about the storage.\n\nReturns:\n\n* FSE_OK if the information has been successfully received, any other error code on failure.\n\n# Arguments\n\n* `storage` - pointer to a storage API instance.\n* `fs_path` - pointer to a zero-terminated string containing the path to the storage question.\n* `total_space` - pointer to the value to contain the total capacity, in bytes.\n* `free_space` - pointer to the value to contain the available space, in bytes.\n\n"]
     pub fn storage_common_fs_info(
         storage: *mut Storage,
         fs_path: *const core::ffi::c_char,
@@ -10908,14 +10928,14 @@ extern "C" {
     ) -> FS_Error;
 }
 extern "C" {
-    #[doc = "Parse aliases in path and replace them with real path Also will create special folders if they are not exist\n\nReturns:\n\n* bool\n\n# Arguments\n\n* `storage` - \n* `path` - \n\n"]
+    #[doc = "Parse aliases in a path and replace them with the real path.\n\nNecessary special directories will be created automatically if they did not exist.\n\nReturns:\n\n* true if the path was successfully resolved, false otherwise.\n\n# Arguments\n\n* `storage` - pointer to a storage API instance.\n* `path` - pointer to a zero-terminated string containing the path in question.\n\n"]
     pub fn storage_common_resolve_path_and_ensure_app_directory(
         storage: *mut Storage,
         path: *mut FuriString,
     );
 }
 extern "C" {
-    #[doc = "Move content of one folder to another, with rename of all conflicting files. Source folder will be deleted if the migration is successful.\n\nReturns:\n\n* FS_Error\n\n# Arguments\n\n* `storage` - \n* `source` - \n* `dest` - \n\n"]
+    #[doc = "Move the contents of source folder to destination one and rename all conflicting files.\n\nSource folder will be deleted if the migration was successful.\n\nReturns:\n\n* FSE_OK if the migration was successfull completed, any other error code on failure.\n\n# Arguments\n\n* `storage` - pointer to a storage API instance.\n* `source` - pointer to a zero-terminated string containing the source path.\n* `dest` - pointer to a zero-terminated string containing the destination path.\n\n"]
     pub fn storage_common_migrate(
         storage: *mut Storage,
         source: *const core::ffi::c_char,
@@ -10923,50 +10943,60 @@ extern "C" {
     ) -> FS_Error;
 }
 extern "C" {
-    #[doc = "Check that file or dir exists\n\nReturns:\n\n* bool\n\n# Arguments\n\n* `storage` - \n* `path` - \n\n"]
+    #[doc = "Check whether a file or a directory exists.\n\nReturns:\n\n* true if a file or a directory exists, false otherwise.\n\n# Arguments\n\n* `storage` - pointer to a storage API instance.\n* `path` - pointer to a zero-terminated string containing the path in question.\n\n"]
     pub fn storage_common_exists(storage: *mut Storage, path: *const core::ffi::c_char) -> bool;
 }
 extern "C" {
-    #[doc = "Retrieves the error text from the error id\n\nReturns:\n\n* const char* error text\n\n# Arguments\n\n* `error_id` - error id\n\n"]
+    #[doc = "Check whether two paths are equivalent.\n\nThis function will resolve aliases and apply filesystem-specific rules to determine whether the two given paths are equivalent.\nExamples:\n* /int/text and /ext/test -> false (Different storages),\n* /int/Test and /int/test -> false (Case-sensitive storage),\n* /ext/Test and /ext/test -> true (Case-insensitive storage).\nIf the truncate parameter is set to true, the second path will be truncated to be no longer than the first one. It is useful to determine whether path2 is a subdirectory of path1.\n\nReturns:\n\n* true if paths are equivalent, false otherwise.\n\n# Arguments\n\n* `storage` - pointer to a storage API instance.\n* `path1` - pointer to a zero-terminated string containing the first path.\n* `path2` - pointer to a zero-terminated string containing the second path.\n* `truncate` - whether to truncate path2 to be no longer than path1.\n\n"]
+    pub fn storage_common_equivalent_path(
+        storage: *mut Storage,
+        path1: *const core::ffi::c_char,
+        path2: *const core::ffi::c_char,
+        truncate: bool,
+    ) -> bool;
+}
+extern "C" {
+    #[doc = "Get the textual description of a numeric error identifer.\n\nReturns:\n\n* pointer to a statically allocated zero-terminated string containing the respective error text.\n\n# Arguments\n\n* `error_id` - numeric identifier of the error in question.\n\n"]
     pub fn storage_error_get_desc(error_id: FS_Error) -> *const core::ffi::c_char;
 }
 extern "C" {
-    #[doc = "Retrieves the error id from the file object\n\nReturns:\n\n* FS_Error error id\n\n# Arguments\n\n* `file` - pointer to file object. Pointer must not point to NULL. YOU CANNOT RETRIEVE THE ERROR ID IF THE FILE HAS BEEN CLOSED\n\n"]
+    #[doc = "Get the numeric error identifier from a file instance.\n\n**Warning!**\n\n* It is not possible to get the error identifier after the file has been closed.\n\nReturns:\n\n* numeric identifier of the last error associated with the file instance.\n\n# Arguments\n\n* `file` - pointer to the file instance in question (must NOT be NULL).\n\n"]
     pub fn storage_file_get_error(file: *mut File) -> FS_Error;
 }
 extern "C" {
-    #[doc = "Retrieves the error text from the file object\n\nReturns:\n\n* const char* error text\n\n# Arguments\n\n* `file` - pointer to file object. Pointer must not point to NULL. YOU CANNOT RETRIEVE THE ERROR TEXT IF THE FILE HAS BEEN CLOSED\n\n"]
+    #[doc = "Get the textual description of a the last error associated with a file instance.\n\n**Warning!**\n\n* It is not possible to get the error text after the file has been closed.\n\nReturns:\n\n* pointer to a statically allocated zero-terminated string containing the respective error text.\n\n# Arguments\n\n* `file` - pointer to the file instance in question (must NOT be NULL).\n\n"]
     pub fn storage_file_get_error_desc(file: *mut File) -> *const core::ffi::c_char;
 }
 extern "C" {
-    #[doc = "Formats SD Card\n\nReturns:\n\n* FS_Error operation result\n\n# Arguments\n\n* `api` - pointer to the api\n\n"]
-    pub fn storage_sd_format(api: *mut Storage) -> FS_Error;
+    #[doc = "Format the SD Card.\n\nReturns:\n\n* FSE_OK if the card was successfully formatted, any other error code on failure.\n\n# Arguments\n\n* `storage` - pointer to a storage API instance.\n\n"]
+    pub fn storage_sd_format(storage: *mut Storage) -> FS_Error;
 }
 extern "C" {
-    #[doc = "Will unmount the SD card. Will return FSE_NOT_READY if the SD card is not mounted. Will return FSE_DENIED if there are open files on the SD card.\n\nReturns:\n\n* FS_Error operation result\n\n# Arguments\n\n* `api` - pointer to the api\n\n"]
-    pub fn storage_sd_unmount(api: *mut Storage) -> FS_Error;
+    #[doc = "Unmount the SD card.\n\nThese return values have special meaning:\n* FSE_NOT_READY if the SD card is not mounted.\n* FSE_DENIED if there are open files on the SD card.\n\nReturns:\n\n* FSE_OK if the card was successfully formatted, any other error code on failure.\n\n# Arguments\n\n* `storage` - pointer to a storage API instance.\n\n"]
+    pub fn storage_sd_unmount(storage: *mut Storage) -> FS_Error;
 }
 extern "C" {
-    #[doc = "Will mount the SD card\n\nReturns:\n\n* FS_Error operation result\n\n# Arguments\n\n* `api` - pointer to the api\n\n"]
-    pub fn storage_sd_mount(api: *mut Storage) -> FS_Error;
+    #[doc = "Mount the SD card.\n\nReturns:\n\n* FSE_OK if the card was successfully mounted, any other error code on failure.\n\n# Arguments\n\n* `storage` - pointer to a storage API instance.\n\n"]
+    pub fn storage_sd_mount(storage: *mut Storage) -> FS_Error;
 }
 extern "C" {
-    #[doc = "Retrieves SD card information\n\nReturns:\n\n* FS_Error operation result\n\n# Arguments\n\n* `api` - pointer to the api\n* `info` - pointer to the info\n\n"]
-    pub fn storage_sd_info(api: *mut Storage, info: *mut SDInfo) -> FS_Error;
+    #[doc = "Get SD card information.\n\nReturns:\n\n* FSE_OK if the info was successfully received, any other error code on failure.\n\n# Arguments\n\n* `storage` - pointer to a storage API instance.\n* `info` - pointer to the info object to contain the requested information.\n\n"]
+    pub fn storage_sd_info(storage: *mut Storage, info: *mut SDInfo) -> FS_Error;
 }
 extern "C" {
-    #[doc = "Retrieves SD card status\n\nReturns:\n\n* FS_Error operation result\n\n# Arguments\n\n* `api` - pointer to the api\n\n"]
-    pub fn storage_sd_status(api: *mut Storage) -> FS_Error;
+    #[doc = "Get SD card status.\n\nReturns:\n\n* storage status in the form of a numeric error identifier.\n\n# Arguments\n\n* `storage` - pointer to a storage API instance.\n\n"]
+    pub fn storage_sd_status(storage: *mut Storage) -> FS_Error;
 }
 #[doc = "Internal LFS Functions\n\n"]
 pub type Storage_name_converter =
     ::core::option::Option<unsafe extern "C" fn(arg1: *mut FuriString)>;
 extern "C" {
-    #[doc = "Backs up internal storage to a tar archive\n\nReturns:\n\n* FS_Error operation result\n\n# Arguments\n\n* `api` - pointer to the api\n* `dstname` - destination archive path\n\n"]
-    pub fn storage_int_backup(api: *mut Storage, dstname: *const core::ffi::c_char) -> FS_Error;
+    #[doc = "Back up the internal storage contents to a *.tar archive.\n\nReturns:\n\n* FSE_OK if the storage was successfully backed up, any other error code on failure.\n\n# Arguments\n\n* `storage` - pointer to a storage API instance.\n* `dstname` - pointer to a zero-terminated string containing the archive file path.\n\n"]
+    pub fn storage_int_backup(storage: *mut Storage, dstname: *const core::ffi::c_char)
+        -> FS_Error;
 }
 extern "C" {
-    #[doc = "Restores internal storage from a tar archive\n\nReturns:\n\n* FS_Error operation result\n\n# Arguments\n\n* `api` - pointer to the api\n* `dstname` - archive path\n* `converter` - pointer to filename conversion function, may be NULL\n\n"]
+    #[doc = "Restore the internal storage contents from a *.tar archive.\n\nReturns:\n\n* FSE_OK if the storage was successfully restored, any other error code on failure.\n\n# Arguments\n\n* `storage` - pointer to a storage API instance.\n* `dstname` - pointer to a zero-terminated string containing the archive file path.\n* `converter` - pointer to a filename conversion function (may be NULL).\n\n"]
     pub fn storage_int_restore(
         api: *mut Storage,
         dstname: *const core::ffi::c_char,
@@ -10974,22 +11004,22 @@ extern "C" {
     ) -> FS_Error;
 }
 extern "C" {
-    #[doc = "Removes a file/directory, the directory must be empty and the file/directory must not be open\n\nReturns:\n\n* true on success or if file/dir is not exist\n\n# Arguments\n\n* `storage` - pointer to the api\n* `path` - \n\n"]
+    #[doc = "Remove a file or a directory.\n\nThe following conditions must be met:\n* the directory must be empty.\n* the file or the directory must NOT be open.\n\nReturns:\n\n* true on success or if the item does not exist, false otherwise.\n\n# Arguments\n\n* `storage` - pointer to a storage API instance.\n* `path` - pointer to a zero-terminated string containing the item path.\n\n"]
     pub fn storage_simply_remove(storage: *mut Storage, path: *const core::ffi::c_char) -> bool;
 }
 extern "C" {
-    #[doc = "Recursively removes a file/directory, the directory can be not empty\n\nReturns:\n\n* true on success or if file/dir is not exist\n\n# Arguments\n\n* `storage` - pointer to the api\n* `path` - \n\n"]
+    #[doc = "Recursively remove a file or a directory.\n\nUnlike storage_simply_remove(), the directory does not need to be empty.\n\nReturns:\n\n* true on success or if the item does not exist, false otherwise.\n\n# Arguments\n\n* `storage` - pointer to a storage API instance.\n* `path` - pointer to a zero-terminated string containing the item path.\n\n"]
     pub fn storage_simply_remove_recursive(
         storage: *mut Storage,
         path: *const core::ffi::c_char,
     ) -> bool;
 }
 extern "C" {
-    #[doc = "Creates a directory\n\nReturns:\n\n* true on success or if directory is already exist\n\n# Arguments\n\n* `storage` - \n* `path` - \n\n"]
+    #[doc = "Create a directory.\n\nReturns:\n\n* true on success or if directory does already exist, false otherwise.\n\n# Arguments\n\n* `storage` - pointer to a storage API instance.\n* `path` - pointer to a zero-terminated string containing the directory path.\n\n"]
     pub fn storage_simply_mkdir(storage: *mut Storage, path: *const core::ffi::c_char) -> bool;
 }
 extern "C" {
-    #[doc = "Get next free filename.\n\n# Arguments\n\n* `storage` - \n* `dirname` - \n* `filename` - \n* `fileextension` - \n* `nextfilename` - return name\n* `max_len` - max len name\n\n"]
+    #[doc = "Get the next free filename in a directory.\n\nUsage example: ```c FuriString* file_name = furi_string_alloc(); Storage* storage = furi_record_open(RECORD_STORAGE);\nstorage_get_next_filename(storage, \"/ext/test\", \"cookies\", \".yum\", 20);\nfuri_record_close(RECORD_STORAGE);\nuse_file_name(file_name);\nfuri_string_free(file_name); ``` Possible file_name values after calling storage_get_next_filename(): \"cookies\", \"cookies1\", \"cookies2\", ... etc depending on whether any of these files have already existed in the directory.\n\n# Arguments\n\n* `storage` - pointer to a storage API instance.\n* `dirname` - pointer to a zero-terminated string containing the directory path.\n* `filename` - pointer to a zero-terminated string containing the file name.\n* `fileextension` - pointer to a zero-terminated string containing the file extension.\n* `nextfilename` - pointer to a dynamic string containing the resulting file name.\n* `max_len` - maximum length of the new name.\n\n# Notes\n\n* If the resulting next file name length is greater than set by the max_len parameter, the original filename will be returned instead.\n\n"]
     pub fn storage_get_next_filename(
         storage: *mut Storage,
         dirname: *const core::ffi::c_char,
@@ -12203,7 +12233,7 @@ extern "C" {
 }
 extern "C" {
     #[doc = "Get glyph width\n\nReturns:\n\n* width in pixels\n\n# Arguments\n\n* `canvas` - Canvas instance\n* `symbol` - [Direction: In] character\n\n"]
-    pub fn canvas_glyph_width(canvas: *mut Canvas, symbol: core::ffi::c_char) -> u8;
+    pub fn canvas_glyph_width(canvas: *mut Canvas, symbol: u16) -> u8;
 }
 extern "C" {
     #[doc = "Draw bitmap picture at position defined by x,y.\n\n# Arguments\n\n* `canvas` - Canvas instance\n* `x` - x coordinate\n* `y` - y coordinate\n* `width` - width of bitmap\n* `height` - height of bitmap\n* `compressed_bitmap_data` - compressed bitmap data\n\n"]
@@ -14584,6 +14614,13 @@ extern "C" {
         values_count: u8,
         change_callback: VariableItemChangeCallback,
         context: *mut core::ffi::c_void,
+    ) -> *mut VariableItem;
+}
+extern "C" {
+    #[doc = "Get item in VariableItemList\n\nReturns:\n\n* VariableItem* item instance\n\n# Arguments\n\n* `variable_item_list` - VariableItemList instance\n* `position` - index of the item to get\n\n"]
+    pub fn variable_item_list_get(
+        variable_item_list: *mut VariableItemList,
+        position: u8,
     ) -> *mut VariableItem;
 }
 extern "C" {
@@ -17510,6 +17547,149 @@ extern "C" {
     pub fn rgb_backlight_reconfigure(enabled: bool);
 }
 extern "C" {
+    #[doc = "Read register\n\n# Arguments\n\n* `handle` - - pointer t FuriHalSpiBusHandle instance\n* `reg` - - register address\n* `val` - - pointer to the variable to store the read value\n\n"]
+    pub fn st25r3916_read_reg(handle: *mut FuriHalSpiBusHandle, reg: u8, val: *mut u8);
+}
+extern "C" {
+    #[doc = "Read multiple registers\n\n# Arguments\n\n* `handle` - - pointer to FuriHalSpiBusHandle instance\n* `reg_start` - - start register address\n* `values` - - pointer to the buffer to store the read values\n* `length` - - number of registers to read\n\n"]
+    pub fn st25r3916_read_burst_regs(
+        handle: *mut FuriHalSpiBusHandle,
+        reg_start: u8,
+        values: *mut u8,
+        length: u8,
+    );
+}
+extern "C" {
+    #[doc = "Write register\n\n# Arguments\n\n* `handle` - - pointer to FuriHalSpiBusHandle instance\n* `reg` - - register address\n* `val` - - value to write\n\n"]
+    pub fn st25r3916_write_reg(handle: *mut FuriHalSpiBusHandle, reg: u8, val: u8);
+}
+extern "C" {
+    #[doc = "Write multiple registers\n\n# Arguments\n\n* `handle` - - pointer to FuriHalSpiBusHandle instance\n* `reg_start` - - start register address\n* `values` - - pointer to buffer to write\n* `length` - - number of registers to write\n\n"]
+    pub fn st25r3916_write_burst_regs(
+        handle: *mut FuriHalSpiBusHandle,
+        reg_start: u8,
+        values: *const u8,
+        length: u8,
+    );
+}
+extern "C" {
+    #[doc = "Write fifo register\n\n# Arguments\n\n* `handle` - - pointer to FuriHalSpiBusHandle instance\n* `buff` - - buffer to write to FIFO\n* `length` - - number of bytes to write\n\n"]
+    pub fn st25r3916_reg_write_fifo(
+        handle: *mut FuriHalSpiBusHandle,
+        buff: *const u8,
+        length: usize,
+    );
+}
+extern "C" {
+    #[doc = "Read fifo register\n\n# Arguments\n\n* `handle` - - pointer to FuriHalSpiBusHandle instance\n* `buff` - - buffer to store the read values\n* `length` - - number of bytes to read\n\n"]
+    pub fn st25r3916_reg_read_fifo(handle: *mut FuriHalSpiBusHandle, buff: *mut u8, length: usize);
+}
+extern "C" {
+    #[doc = "Write PTA memory register\n\n# Arguments\n\n* `handle` - - pointer to FuriHalSpiBusHandle instance\n* `values` - - pointer to buffer to write\n* `length` - - number of bytes to write\n\n"]
+    pub fn st25r3916_write_pta_mem(
+        handle: *mut FuriHalSpiBusHandle,
+        values: *const u8,
+        length: usize,
+    );
+}
+extern "C" {
+    #[doc = "Read PTA memory register\n\n# Arguments\n\n* `handle` - - pointer to FuriHalSpiBusHandle instance\n* `values` - - buffer to store the read values\n* `length` - - number of bytes to read\n\n"]
+    pub fn st25r3916_read_pta_mem(handle: *mut FuriHalSpiBusHandle, values: *mut u8, length: usize);
+}
+extern "C" {
+    #[doc = "Write PTF memory register\n\n# Arguments\n\n* `handle` - - pointer to FuriHalSpiBusHandle instance\n* `values` - - pointer to buffer to write\n* `length` - - number of bytes to write\n\n"]
+    pub fn st25r3916_write_ptf_mem(
+        handle: *mut FuriHalSpiBusHandle,
+        values: *const u8,
+        length: usize,
+    );
+}
+extern "C" {
+    #[doc = "Read PTTSN memory register\n\n# Arguments\n\n* `handle` - - pointer to FuriHalSpiBusHandle instance\n* `values` - - pointer to buffer to write\n* `length` - - number of bytes to write\n\n"]
+    pub fn st25r3916_write_pttsn_mem(
+        handle: *mut FuriHalSpiBusHandle,
+        values: *mut u8,
+        length: usize,
+    );
+}
+extern "C" {
+    #[doc = "Send Direct command\n\n# Arguments\n\n* `handle` - - pointer to FuriHalSpiBusHandle instance\n* `cmd` - - direct command\n\n"]
+    pub fn st25r3916_direct_cmd(handle: *mut FuriHalSpiBusHandle, cmd: u8);
+}
+extern "C" {
+    #[doc = "Read test register\n\n# Arguments\n\n* `handle` - - pointer to FuriHalSpiBusHandle instance\n* `reg` - - register address\n* `val` - - pointer to the variable to store the read value\n\n"]
+    pub fn st25r3916_read_test_reg(handle: *mut FuriHalSpiBusHandle, reg: u8, val: *mut u8);
+}
+extern "C" {
+    #[doc = "Write test register\n\n# Arguments\n\n* `handle` - - pointer to FuriHalSpiBusHandle instance\n* `reg` - - register address\n* `val` - - value to write\n\n"]
+    pub fn st25r3916_write_test_reg(handle: *mut FuriHalSpiBusHandle, reg: u8, val: u8);
+}
+extern "C" {
+    #[doc = "Clear register bits\n\n# Arguments\n\n* `handle` - - pointer to FuriHalSpiBusHandle instance\n* `reg` - - register address\n* `clr_mask` - - bit mask to clear\n\n"]
+    pub fn st25r3916_clear_reg_bits(handle: *mut FuriHalSpiBusHandle, reg: u8, clr_mask: u8);
+}
+extern "C" {
+    #[doc = "Set register bits\n\n# Arguments\n\n* `handle` - - pointer to FuriHalSpiBusHandle instance\n* `reg` - - register address\n* `set_mask` - - bit mask to set\n\n"]
+    pub fn st25r3916_set_reg_bits(handle: *mut FuriHalSpiBusHandle, reg: u8, set_mask: u8);
+}
+extern "C" {
+    #[doc = "Change register bits\n\n# Arguments\n\n* `handle` - - pointer to FuriHalSpiBusHandle instance\n* `reg` - - register address\n* `mask` - - bit mask to change\n* `value` - - new register value to write\n\n"]
+    pub fn st25r3916_change_reg_bits(
+        handle: *mut FuriHalSpiBusHandle,
+        reg: u8,
+        mask: u8,
+        value: u8,
+    );
+}
+extern "C" {
+    #[doc = "Modify register\n\n# Arguments\n\n* `handle` - - pointer to FuriHalSpiBusHandle instance\n* `reg` - - register address\n* `clr_mask` - - bit mask to clear\n* `set_mask` - - bit mask to set\n\n"]
+    pub fn st25r3916_modify_reg(
+        handle: *mut FuriHalSpiBusHandle,
+        reg: u8,
+        clr_mask: u8,
+        set_mask: u8,
+    );
+}
+extern "C" {
+    #[doc = "Change test register bits\n\n# Arguments\n\n* `handle` - - pointer to FuriHalSpiBusHandle instance\n* `reg` - - register address\n* `mask` - - bit mask to change\n* `value` - - new register value to write\n\n"]
+    pub fn st25r3916_change_test_reg_bits(
+        handle: *mut FuriHalSpiBusHandle,
+        reg: u8,
+        mask: u8,
+        value: u8,
+    );
+}
+extern "C" {
+    #[doc = "Check register\n\nReturns:\n\n* true if register value matches the expected value, false otherwise\n\n# Arguments\n\n* `handle` - - pointer to FuriHalSpiBusHandle instance\n* `reg` - - register address\n* `mask` - - bit mask to check\n* `val` - - expected register value\n\n"]
+    pub fn st25r3916_check_reg(
+        handle: *mut FuriHalSpiBusHandle,
+        reg: u8,
+        mask: u8,
+        val: u8,
+    ) -> bool;
+}
+extern "C" {
+    #[doc = "Mask st25r3916 interrupts\n\n# Arguments\n\n* `handle` - - pointer to FuriHalSpiBusHandle instance\n* `mask` - - mask of interrupts to be disabled\n\n"]
+    pub fn st25r3916_mask_irq(handle: *mut FuriHalSpiBusHandle, mask: u32);
+}
+extern "C" {
+    #[doc = "Get st25r3916 interrupts\n\nReturns:\n\n* received interrupts\n\n# Arguments\n\n* `handle` - - pointer to FuriHalSpiBusHandle instance\n\n"]
+    pub fn st25r3916_get_irq(handle: *mut FuriHalSpiBusHandle) -> u32;
+}
+extern "C" {
+    #[doc = "Write FIFO\n\n# Arguments\n\n* `handle` - - pointer to FuriHalSpiBusHandle instance\n* `buff` - - buffer to write to FIFO\n* `bits` - - number of bits to write\n\n"]
+    pub fn st25r3916_write_fifo(handle: *mut FuriHalSpiBusHandle, buff: *const u8, bits: usize);
+}
+extern "C" {
+    #[doc = "Read FIFO\n\nReturns:\n\n* true if read success, false otherwise\n\n# Arguments\n\n* `handle` - - pointer to FuriHalSpiBusHandle instance\n* `buff` - - buffer to read from FIFO\n* `buff_size` - - buffer size n bytes\n* `buff_bits` - - pointer to number of bits read\n\n"]
+    pub fn st25r3916_read_fifo(
+        handle: *mut FuriHalSpiBusHandle,
+        buff: *mut u8,
+        buff_size: usize,
+        buff_bits: *mut usize,
+    ) -> bool;
+}
+extern "C" {
     #[doc = "Resolver for API entries using a pre-sorted table with hashes\n\nReturns:\n\n* true if the table contains a function\n\n# Arguments\n\n* `interface` - pointer to HashtableApiInterface\n* `hash` - gnu hash of function name\n* `address` - output for function address\n\n"]
     pub fn elf_resolve_from_hashtable(
         interface: *const ElfApiInterface,
@@ -19947,43 +20127,222 @@ fn bindgen_test_layout_usb_cdc_line_coding() {
         )
     );
 }
+#[doc = "MD5 context structure\n\n**Warning!**\n\n* MD5 is considered a weak message digest and its use constitutes a security risk. We recommend considering stronger message digests instead.\n\n"]
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct mbedtls_md5_context {
+    pub private_total: [u32; 2usize],
+    pub private_state: [u32; 4usize],
+    pub private_buffer: [core::ffi::c_uchar; 64usize],
+}
+#[test]
+fn bindgen_test_layout_mbedtls_md5_context() {
+    const UNINIT: ::core::mem::MaybeUninit<mbedtls_md5_context> =
+        ::core::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::core::mem::size_of::<mbedtls_md5_context>(),
+        88usize,
+        concat!("Size of: ", stringify!(mbedtls_md5_context))
+    );
+    assert_eq!(
+        ::core::mem::align_of::<mbedtls_md5_context>(),
+        4usize,
+        concat!("Alignment of ", stringify!(mbedtls_md5_context))
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).private_total) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mbedtls_md5_context),
+            "::",
+            stringify!(private_total)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).private_state) as usize - ptr as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mbedtls_md5_context),
+            "::",
+            stringify!(private_state)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).private_buffer) as usize - ptr as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mbedtls_md5_context),
+            "::",
+            stringify!(private_buffer)
+        )
+    );
+}
 extern "C" {
-    #[doc = "This function calculates the SHA-1 checksum of a buffer.\n\nThe function allocates the context, performs the calculation, and frees the context.\nThe SHA-1 result is calculated as output = SHA-1(input buffer).\n\n**Warning!**\n\n* SHA-1 is considered a weak message digest and its use constitutes a security risk. We recommend considering stronger message digests instead.\n\nReturns:\n\n* \\c 0 on success.\n* A negative error code on failure.\n\n# Arguments\n\n* `input` - The buffer holding the input data. This must be a readable buffer of length \\p ilen Bytes.\n* `ilen` - The length of the input data \\p input in Bytes.\n* `output` - The SHA-1 checksum result. This must be a writable buffer of length \\c 20 Bytes.\n\n"]
-    pub fn mbedtls_sha1(
+    #[doc = "Initialize MD5 context\n\n**Warning!**\n\n* MD5 is considered a weak message digest and its use constitutes a security risk. We recommend considering stronger message digests instead.\n\n# Arguments\n\n* `ctx` - MD5 context to be initialized\n\n"]
+    pub fn mbedtls_md5_init(ctx: *mut mbedtls_md5_context);
+}
+extern "C" {
+    #[doc = "Clear MD5 context\n\n**Warning!**\n\n* MD5 is considered a weak message digest and its use constitutes a security risk. We recommend considering stronger message digests instead.\n\n# Arguments\n\n* `ctx` - MD5 context to be cleared\n\n"]
+    pub fn mbedtls_md5_free(ctx: *mut mbedtls_md5_context);
+}
+extern "C" {
+    #[doc = "Clone (the state of) an MD5 context\n\n**Warning!**\n\n* MD5 is considered a weak message digest and its use constitutes a security risk. We recommend considering stronger message digests instead.\n\n# Arguments\n\n* `dst` - The destination context\n* `src` - The context to be cloned\n\n"]
+    pub fn mbedtls_md5_clone(dst: *mut mbedtls_md5_context, src: *const mbedtls_md5_context);
+}
+extern "C" {
+    #[doc = "MD5 context setup\n\n**Warning!**\n\n* MD5 is considered a weak message digest and its use constitutes a security risk. We recommend considering stronger message digests instead.\n\nReturns:\n\n* 0 if successful\n\n# Arguments\n\n* `ctx` - context to be initialized\n\n"]
+    pub fn mbedtls_md5_starts(ctx: *mut mbedtls_md5_context) -> core::ffi::c_int;
+}
+extern "C" {
+    #[doc = "MD5 process buffer\n\n**Warning!**\n\n* MD5 is considered a weak message digest and its use constitutes a security risk. We recommend considering stronger message digests instead.\n\nReturns:\n\n* 0 if successful\n\n# Arguments\n\n* `ctx` - MD5 context\n* `input` - buffer holding the data\n* `ilen` - length of the input data\n\n"]
+    pub fn mbedtls_md5_update(
+        ctx: *mut mbedtls_md5_context,
+        input: *const core::ffi::c_uchar,
+        ilen: usize,
+    ) -> core::ffi::c_int;
+}
+extern "C" {
+    #[doc = "MD5 final digest\n\n**Warning!**\n\n* MD5 is considered a weak message digest and its use constitutes a security risk. We recommend considering stronger message digests instead.\n\nReturns:\n\n* 0 if successful\n\n# Arguments\n\n* `ctx` - MD5 context\n* `output` - MD5 checksum result\n\n"]
+    pub fn mbedtls_md5_finish(
+        ctx: *mut mbedtls_md5_context,
+        output: *mut core::ffi::c_uchar,
+    ) -> core::ffi::c_int;
+}
+extern "C" {
+    #[doc = "MD5 process data block (internal use only)\n\n**Warning!**\n\n* MD5 is considered a weak message digest and its use constitutes a security risk. We recommend considering stronger message digests instead.\n\nReturns:\n\n* 0 if successful\n\n# Arguments\n\n* `ctx` - MD5 context\n* `data` - buffer holding one block of data\n\n"]
+    pub fn mbedtls_internal_md5_process(
+        ctx: *mut mbedtls_md5_context,
+        data: *const core::ffi::c_uchar,
+    ) -> core::ffi::c_int;
+}
+extern "C" {
+    #[doc = "Output = MD5( input buffer )\n\n**Warning!**\n\n* MD5 is considered a weak message digest and its use constitutes a security risk. We recommend considering stronger message digests instead.\n\nReturns:\n\n* 0 if successful\n\n# Arguments\n\n* `input` - buffer holding the data\n* `ilen` - length of the input data\n* `output` - MD5 checksum result\n\n"]
+    pub fn mbedtls_md5(
         input: *const core::ffi::c_uchar,
         ilen: usize,
         output: *mut core::ffi::c_uchar,
     ) -> core::ffi::c_int;
 }
+#[doc = "The SHA-256 context structure.\n\nThe structure is used both for SHA-256 and for SHA-224 checksum calculations. The choice between these two is made in the call to mbedtls_sha256_starts().\n\n"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-pub struct uECC_Curve_t {
-    _unused: [u8; 0],
+pub struct mbedtls_sha256_context {
+    pub private_buffer: [core::ffi::c_uchar; 64usize],
+    pub private_total: [u32; 2usize],
+    pub private_state: [u32; 8usize],
+    pub private_is224: core::ffi::c_int,
 }
-pub type uECC_Curve = *const uECC_Curve_t;
-extern "C" {
-    pub fn uECC_secp256r1() -> uECC_Curve;
+#[test]
+fn bindgen_test_layout_mbedtls_sha256_context() {
+    const UNINIT: ::core::mem::MaybeUninit<mbedtls_sha256_context> =
+        ::core::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::core::mem::size_of::<mbedtls_sha256_context>(),
+        108usize,
+        concat!("Size of: ", stringify!(mbedtls_sha256_context))
+    );
+    assert_eq!(
+        ::core::mem::align_of::<mbedtls_sha256_context>(),
+        4usize,
+        concat!("Alignment of ", stringify!(mbedtls_sha256_context))
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).private_buffer) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mbedtls_sha256_context),
+            "::",
+            stringify!(private_buffer)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).private_total) as usize - ptr as usize },
+        64usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mbedtls_sha256_context),
+            "::",
+            stringify!(private_total)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).private_state) as usize - ptr as usize },
+        72usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mbedtls_sha256_context),
+            "::",
+            stringify!(private_state)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).private_is224) as usize - ptr as usize },
+        104usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(mbedtls_sha256_context),
+            "::",
+            stringify!(private_is224)
+        )
+    );
 }
-pub type uECC_RNG_Function = ::core::option::Option<
-    unsafe extern "C" fn(dest: *mut u8, size: core::ffi::c_uint) -> core::ffi::c_int,
->;
 extern "C" {
-    pub fn uECC_set_rng(rng_function: uECC_RNG_Function);
+    #[doc = "This function initializes a SHA-256 context.\n\n# Arguments\n\n* `ctx` - The SHA-256 context to initialize. This must not be \\c NULL.\n\n"]
+    pub fn mbedtls_sha256_init(ctx: *mut mbedtls_sha256_context);
 }
 extern "C" {
-    pub fn uECC_compute_public_key(
-        private_key: *const u8,
-        public_key: *mut u8,
-        curve: uECC_Curve,
+    #[doc = "This function clears a SHA-256 context.\n\n# Arguments\n\n* `ctx` - The SHA-256 context to clear. This may be \\c NULL, in which case this function returns immediately. If it is not \\c NULL, it must point to an initialized SHA-256 context.\n\n"]
+    pub fn mbedtls_sha256_free(ctx: *mut mbedtls_sha256_context);
+}
+extern "C" {
+    #[doc = "This function clones the state of a SHA-256 context.\n\n# Arguments\n\n* `dst` - The destination context. This must be initialized.\n* `src` - The context to clone. This must be initialized.\n\n"]
+    pub fn mbedtls_sha256_clone(
+        dst: *mut mbedtls_sha256_context,
+        src: *const mbedtls_sha256_context,
+    );
+}
+extern "C" {
+    #[doc = "This function starts a SHA-224 or SHA-256 checksum calculation.\n\nReturns:\n\n* \\c 0 on success.\n* A negative error code on failure.\n\n# Arguments\n\n* `ctx` - The context to use. This must be initialized.\n* `is224` - This determines which function to use. This must be either \\c 0 for SHA-256, or \\c 1 for SHA-224.\n\n# Notes\n\n* is224 must be defined accordingly to the enabled MBEDTLS_SHA224_C/MBEDTLS_SHA256_C symbols otherwise the function will return #MBEDTLS_ERR_SHA512_BAD_INPUT_DATA.\n\n"]
+    pub fn mbedtls_sha256_starts(
+        ctx: *mut mbedtls_sha256_context,
+        is224: core::ffi::c_int,
     ) -> core::ffi::c_int;
 }
 extern "C" {
-    pub fn uECC_sign(
-        private_key: *const u8,
-        message_hash: *const u8,
-        hash_size: core::ffi::c_uint,
-        signature: *mut u8,
-        curve: uECC_Curve,
+    #[doc = "This function feeds an input buffer into an ongoing SHA-256 checksum calculation.\n\nReturns:\n\n* \\c 0 on success.\n* A negative error code on failure.\n\n# Arguments\n\n* `ctx` - The SHA-256 context. This must be initialized and have a hash operation started.\n* `input` - The buffer holding the data. This must be a readable buffer of length \\p ilen Bytes.\n* `ilen` - The length of the input data in Bytes.\n\n"]
+    pub fn mbedtls_sha256_update(
+        ctx: *mut mbedtls_sha256_context,
+        input: *const core::ffi::c_uchar,
+        ilen: usize,
+    ) -> core::ffi::c_int;
+}
+extern "C" {
+    #[doc = "This function finishes the SHA-256 operation, and writes the result to the output buffer.\n\nReturns:\n\n* \\c 0 on success.\n* A negative error code on failure.\n\n# Arguments\n\n* `ctx` - The SHA-256 context. This must be initialized and have a hash operation started.\n* `output` - The SHA-224 or SHA-256 checksum result. This must be a writable buffer of length \\c 32 bytes for SHA-256, \\c 28 bytes for SHA-224.\n\n"]
+    pub fn mbedtls_sha256_finish(
+        ctx: *mut mbedtls_sha256_context,
+        output: *mut core::ffi::c_uchar,
+    ) -> core::ffi::c_int;
+}
+extern "C" {
+    #[doc = "This function processes a single data block within the ongoing SHA-256 computation. This function is for internal use only.\n\nReturns:\n\n* \\c 0 on success.\n* A negative error code on failure.\n\n# Arguments\n\n* `ctx` - The SHA-256 context. This must be initialized.\n* `data` - The buffer holding one block of data. This must be a readable buffer of length \\c 64 Bytes.\n\n"]
+    pub fn mbedtls_internal_sha256_process(
+        ctx: *mut mbedtls_sha256_context,
+        data: *const core::ffi::c_uchar,
+    ) -> core::ffi::c_int;
+}
+extern "C" {
+    #[doc = "This function calculates the SHA-224 or SHA-256 checksum of a buffer.\n\nThe function allocates the context, performs the calculation, and frees the context.\nThe SHA-256 result is calculated as output = SHA-256(input buffer).\n\nReturns:\n\n* \\c 0 on success.\n* A negative error code on failure.\n\n# Arguments\n\n* `input` - The buffer holding the data. This must be a readable buffer of length \\p ilen Bytes.\n* `ilen` - The length of the input data in Bytes.\n* `output` - The SHA-224 or SHA-256 checksum result. This must be a writable buffer of length \\c 32 bytes for SHA-256, \\c 28 bytes for SHA-224.\n* `is224` - Determines which function to use. This must be either \\c 0 for SHA-256, or \\c 1 for SHA-224.\n\n"]
+    pub fn mbedtls_sha256(
+        input: *const core::ffi::c_uchar,
+        ilen: usize,
+        output: *mut core::ffi::c_uchar,
+        is224: core::ffi::c_int,
     ) -> core::ffi::c_int;
 }
 pub type pb_type_t = uint_least8_t;
@@ -21213,6 +21572,16 @@ extern "C" {
     ) -> NfcError;
 }
 extern "C" {
+    #[doc = "Set FeliCa collision resolution parameters in listener mode.\n\nConfigures the NFC hardware for automatic collision resolution.\n\nReturns:\n\n* NfcErrorNone on success, any other error code on failure.\n\n# Arguments\n\n* `instance` - [Direction: Out] pointer to the instance to be configured.\n* `idm` - [Direction: In] pointer to a byte array containing the IDm.\n* `idm_len` - [Direction: In] IDm length in bytes.\n* `pmm` - [Direction: In] pointer to a byte array containing the PMm.\n* `pmm_len` - [Direction: In] PMm length in bytes.\n\n"]
+    pub fn nfc_felica_listener_set_sensf_res_data(
+        instance: *mut Nfc,
+        idm: *const u8,
+        idm_len: u8,
+        pmm: *const u8,
+        pmm_len: u8,
+    ) -> NfcError;
+}
+extern "C" {
     #[doc = "Send ISO15693 Start of Frame pattern in listener mode\n\nReturns:\n\n* NfcErrorNone on success, any other error code on failure.\n\n# Arguments\n\n* `instance` - [Direction: Out] pointer to the instance to be configured.\n\n"]
     pub fn nfc_iso15693_listener_tx_sof(instance: *mut Nfc) -> NfcError;
 }
@@ -21325,6 +21694,54 @@ extern "C" {
 pub struct NfcPoller {
     _unused: [u8; 0],
 }
+#[doc = "Extended generic Nfc event type.\n\nAn extended generic Nfc event contains protocol poller and it's parent protocol event data. If protocol has no parent, then events are produced by Nfc instance.\nThe parent_event_data field is protocol-specific and should be cast to the appropriate type before use.\n\n"]
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct NfcGenericEventEx {
+    #[doc = "Pointer to the protocol poller.\n\n"]
+    pub poller: *mut NfcGenericInstance,
+    #[doc = "Pointer to the protocol's parent poller event data.\n\n"]
+    pub parent_event_data: *mut NfcGenericEventData,
+}
+#[test]
+fn bindgen_test_layout_NfcGenericEventEx() {
+    const UNINIT: ::core::mem::MaybeUninit<NfcGenericEventEx> = ::core::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::core::mem::size_of::<NfcGenericEventEx>(),
+        8usize,
+        concat!("Size of: ", stringify!(NfcGenericEventEx))
+    );
+    assert_eq!(
+        ::core::mem::align_of::<NfcGenericEventEx>(),
+        4usize,
+        concat!("Alignment of ", stringify!(NfcGenericEventEx))
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).poller) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(NfcGenericEventEx),
+            "::",
+            stringify!(poller)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).parent_event_data) as usize - ptr as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(NfcGenericEventEx),
+            "::",
+            stringify!(parent_event_data)
+        )
+    );
+}
+#[doc = "Extended generic Nfc event callback type.\n\nA function of this type must be passed as the callback parameter upon extended start of a poller.\n\nReturns:\n\n* the command which the event producer must execute.\n\n# Arguments\n\n* `[in]` - event Nfc extended generic event, passed by value, complete with protocol type and data.\n* `[in,out]` - context pointer to the user-specific context (set when starting a poller/listener instance).\n\n"]
+pub type NfcGenericCallbackEx = ::core::option::Option<
+    unsafe extern "C" fn(event: NfcGenericEventEx, context: *mut core::ffi::c_void) -> NfcCommand,
+>;
 extern "C" {
     #[doc = "Allocate an NfcPoller instance.\n\n[`nfc.h`]\n\nReturns:\n\n* pointer to an allocated instance.\n\n# Arguments\n\n* `nfc` - [Direction: In] pointer to an Nfc instance.\n* `protocol` - [Direction: In] identifier of the protocol to be used.\n\n"]
     pub fn nfc_poller_alloc(nfc: *mut Nfc, protocol: NfcProtocol) -> *mut NfcPoller;
@@ -21338,6 +21755,14 @@ extern "C" {
     pub fn nfc_poller_start(
         instance: *mut NfcPoller,
         callback: NfcGenericCallback,
+        context: *mut core::ffi::c_void,
+    );
+}
+extern "C" {
+    #[doc = "Start an NfcPoller instance in extended mode.\n\nWhen nfc poller is started in extended mode, callback will be called with parent protocol events and protocol instance. This mode enables to make custom poller state machines.\n\n# Arguments\n\n* `instance` - [Direction: Out] pointer to the instance to be started.\n* `callback` - [Direction: In] pointer to a user-defined callback function which will receive events.\n* `context` - [Direction: In] pointer to a user-specific context (will be passed to the callback).\n\n"]
+    pub fn nfc_poller_start_ex(
+        instance: *mut NfcPoller,
+        callback: NfcGenericCallbackEx,
         context: *mut core::ffi::c_void,
     );
 }
@@ -21621,6 +22046,7 @@ pub struct Iso14443_3aPoller {
     _unused: [u8; 0],
 }
 extern "C" {
+    #[doc = "Transmit and receive Iso14443_3a frames in poller mode.\n\nMust ONLY be used inside the callback function.\nThe rx_buffer will be filled with any data received as a response to data sent from tx_buffer, with a timeout defined by the fwt parameter.\n\nReturns:\n\n* Iso14443_3aErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `tx_buffer` - [Direction: In] pointer to the buffer containing the data to be transmitted.\n* `rx_buffer` - [Direction: In, Out] pointer to the buffer to be filled with received data.\n* `fwt` - [Direction: In] frame wait time (response timeout), in carrier cycles.\n\n"]
     pub fn iso14443_3a_poller_txrx(
         instance: *mut Iso14443_3aPoller,
         tx_buffer: *const BitBuffer,
@@ -21629,6 +22055,7 @@ extern "C" {
     ) -> Iso14443_3aError;
 }
 extern "C" {
+    #[doc = "Transmit and receive Iso14443_3a standard frames in poller mode.\n\nMust ONLY be used inside the callback function.\nThe rx_buffer will be filled with any data received as a response to data sent from tx_buffer, with a timeout defined by the fwt parameter.\n\nReturns:\n\n* Iso14443_3aErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `tx_buffer` - [Direction: In] pointer to the buffer containing the data to be transmitted.\n* `rx_buffer` - [Direction: In, Out] pointer to the buffer to be filled with received data.\n* `fwt` - [Direction: In] frame wait time (response timeout), in carrier cycles.\n\n"]
     pub fn iso14443_3a_poller_send_standard_frame(
         instance: *mut Iso14443_3aPoller,
         tx_buffer: *const BitBuffer,
@@ -21637,11 +22064,44 @@ extern "C" {
     ) -> Iso14443_3aError;
 }
 extern "C" {
-    pub fn iso14443_3a_poller_read(
+    #[doc = "Transmit and receive Iso14443_3a frames with custom parity bits in poller mode.\n\nMust ONLY be used inside the callback function.\nThe rx_buffer will be filled with any data received as a response to data sent from tx_buffer, with a timeout defined by the fwt parameter.\nCustom parity bits must be set in the tx_buffer. The rx_buffer will contain the received data with the parity bits.\n\nReturns:\n\n* Iso14443_3aErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `tx_buffer` - [Direction: In] pointer to the buffer containing the data to be transmitted.\n* `rx_buffer` - [Direction: In, Out] pointer to the buffer to be filled with received data.\n* `fwt` - [Direction: In] frame wait time (response timeout), in carrier cycles.\n\n"]
+    pub fn iso14443_3a_poller_txrx_custom_parity(
+        instance: *mut Iso14443_3aPoller,
+        tx_buffer: *const BitBuffer,
+        rx_buffer: *mut BitBuffer,
+        fwt: u32,
+    ) -> Iso14443_3aError;
+}
+extern "C" {
+    #[doc = "Checks presence of Iso14443_3a complient card.\n\nMust ONLY be used inside the callback function.\n\nReturns:\n\n* Iso14443_3aErrorNone if card is present, an error code otherwise.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n\n"]
+    pub fn iso14443_3a_poller_check_presence(instance: *mut Iso14443_3aPoller) -> Iso14443_3aError;
+}
+extern "C" {
+    #[doc = "Perform collision resolution procedure.\n\nMust ONLY be used inside the callback function.\nPerfoms the collision resolution procedure as defined in Iso14443-3a. The iso14443_3a_data field will be filled with Iso14443-3a data on success.\n\nReturns:\n\n* Iso14443_3aErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `iso14443_3a_data` - [Direction: In, Out] pointer to the Iso14443_3a data structure to be filled.\n\n"]
+    pub fn iso14443_3a_poller_activate(
+        instance: *mut Iso14443_3aPoller,
+        iso14443_3a_data: *mut Iso14443_3aData,
+    ) -> Iso14443_3aError;
+}
+extern "C" {
+    #[doc = "Send HALT command to the card.\n\nMust ONLY be used inside the callback function.\nHalts card and changes internal Iso14443_3aPoller state to Idle.\n\nReturns:\n\n* Iso14443_3aErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n\n"]
+    pub fn iso14443_3a_poller_halt(instance: *mut Iso14443_3aPoller) -> Iso14443_3aError;
+}
+extern "C" {
+    pub fn iso14443_3a_poller_sync_read(
         nfc: *mut Nfc,
         iso14443_3a_data: *mut Iso14443_3aData,
     ) -> Iso14443_3aError;
 }
+pub const Iso14443_3bError_Iso14443_3bErrorNone: Iso14443_3bError = 0;
+pub const Iso14443_3bError_Iso14443_3bErrorNotPresent: Iso14443_3bError = 1;
+pub const Iso14443_3bError_Iso14443_3bErrorColResFailed: Iso14443_3bError = 2;
+pub const Iso14443_3bError_Iso14443_3bErrorBufferOverflow: Iso14443_3bError = 3;
+pub const Iso14443_3bError_Iso14443_3bErrorCommunication: Iso14443_3bError = 4;
+pub const Iso14443_3bError_Iso14443_3bErrorFieldOff: Iso14443_3bError = 5;
+pub const Iso14443_3bError_Iso14443_3bErrorWrongCrc: Iso14443_3bError = 6;
+pub const Iso14443_3bError_Iso14443_3bErrorTimeout: Iso14443_3bError = 7;
+pub type Iso14443_3bError = core::ffi::c_uchar;
 pub const Iso14443_3bBitRate_Iso14443_3bBitRateBoth106Kbit: Iso14443_3bBitRate = 0;
 pub const Iso14443_3bBitRate_Iso14443_3bBitRatePiccToPcd212Kbit: Iso14443_3bBitRate = 1;
 pub const Iso14443_3bBitRate_Iso14443_3bBitRatePiccToPcd424Kbit: Iso14443_3bBitRate = 2;
@@ -21731,6 +22191,164 @@ extern "C" {
 extern "C" {
     pub fn iso14443_3b_get_fwt_fc_max(data: *const Iso14443_3bData) -> u32;
 }
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct Iso14443_3bPoller {
+    _unused: [u8; 0],
+}
+extern "C" {
+    #[doc = "Transmit and receive Iso14443_3b frames in poller mode.\n\nMust ONLY be used inside the callback function.\nThe rx_buffer will be filled with any data received as a response to data sent from tx_buffer, with a timeout defined by the fwt parameter.\n\nReturns:\n\n* Iso14443_3bErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `tx_buffer` - [Direction: In] pointer to the buffer containing the data to be transmitted.\n* `rx_buffer` - [Direction: In, Out] pointer to the buffer to be filled with received data.\n* `fwt` - [Direction: In] frame wait time (response timeout), in carrier cycles.\n\n"]
+    pub fn iso14443_3b_poller_send_frame(
+        instance: *mut Iso14443_3bPoller,
+        tx_buffer: *const BitBuffer,
+        rx_buffer: *mut BitBuffer,
+    ) -> Iso14443_3bError;
+}
+extern "C" {
+    #[doc = "Perform collision resolution procedure.\n\nMust ONLY be used inside the callback function.\nPerfoms the collision resolution procedure as defined in Iso14443-3b. The data field will be filled with Iso14443-3b data on success.\n\nReturns:\n\n* Iso14443_3bErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `data` - [Direction: In, Out] pointer to the Iso14443_3b data structure to be filled.\n\n"]
+    pub fn iso14443_3b_poller_activate(
+        instance: *mut Iso14443_3bPoller,
+        data: *mut Iso14443_3bData,
+    ) -> Iso14443_3bError;
+}
+extern "C" {
+    #[doc = "Send HALT command to the card.\n\nMust ONLY be used inside the callback function.\nHalts card and changes internal Iso14443_3bPoller state to Idle.\n\nReturns:\n\n* Iso14443_3bErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n\n"]
+    pub fn iso14443_3b_poller_halt(instance: *mut Iso14443_3bPoller) -> Iso14443_3bError;
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct SimpleArray {
+    _unused: [u8; 0],
+}
+pub type SimpleArrayData = core::ffi::c_void;
+pub type SimpleArrayElement = core::ffi::c_void;
+pub type SimpleArrayInit =
+    ::core::option::Option<unsafe extern "C" fn(elem: *mut SimpleArrayElement)>;
+pub type SimpleArrayReset =
+    ::core::option::Option<unsafe extern "C" fn(elem: *mut SimpleArrayElement)>;
+pub type SimpleArrayCopy = ::core::option::Option<
+    unsafe extern "C" fn(elem: *mut SimpleArrayElement, other: *const SimpleArrayElement),
+>;
+#[doc = "Simple Array configuration structure. Defined per type.\n\n"]
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct SimpleArrayConfig {
+    #[doc = "Initialisation (in-place constructor) method.\n\n"]
+    pub init: SimpleArrayInit,
+    #[doc = "Reset (custom destructor) method.\n\n"]
+    pub reset: SimpleArrayReset,
+    #[doc = "Copy (custom copy-constructor) method.\n\n"]
+    pub copy: SimpleArrayCopy,
+    pub type_size: usize,
+}
+#[test]
+fn bindgen_test_layout_SimpleArrayConfig() {
+    const UNINIT: ::core::mem::MaybeUninit<SimpleArrayConfig> = ::core::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::core::mem::size_of::<SimpleArrayConfig>(),
+        16usize,
+        concat!("Size of: ", stringify!(SimpleArrayConfig))
+    );
+    assert_eq!(
+        ::core::mem::align_of::<SimpleArrayConfig>(),
+        4usize,
+        concat!("Alignment of ", stringify!(SimpleArrayConfig))
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).init) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(SimpleArrayConfig),
+            "::",
+            stringify!(init)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).reset) as usize - ptr as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(SimpleArrayConfig),
+            "::",
+            stringify!(reset)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).copy) as usize - ptr as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(SimpleArrayConfig),
+            "::",
+            stringify!(copy)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).type_size) as usize - ptr as usize },
+        12usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(SimpleArrayConfig),
+            "::",
+            stringify!(type_size)
+        )
+    );
+}
+extern "C" {
+    #[doc = "Allocate a SimpleArray instance with the given configuration.\n\nReturns:\n\n* Pointer to the allocated SimpleArray instance\n\n# Arguments\n\n* `[in]` - config Pointer to the type-specific configuration\n\n"]
+    pub fn simple_array_alloc(config: *const SimpleArrayConfig) -> *mut SimpleArray;
+}
+extern "C" {
+    #[doc = "Free a SimpleArray instance and release its contents.\n\n# Arguments\n\n* `[in]` - instance Pointer to the SimpleArray instance to be freed\n\n"]
+    pub fn simple_array_free(instance: *mut SimpleArray);
+}
+extern "C" {
+    #[doc = "Initialise a SimpleArray instance by allocating additional space to contain the requested number of elements. If init() is specified in the config, then it is called for each element, otherwise the data is filled with zeroes.\n\n# Arguments\n\n* `[in]` - instance Pointer to the SimpleArray instance to be init'd\n* `[in]` - count Number of elements to be allocated and init'd\n\n"]
+    pub fn simple_array_init(instance: *mut SimpleArray, count: u32);
+}
+extern "C" {
+    #[doc = "Reset a SimpleArray instance and delete all of its elements. If reset() is specified in the config, then it is called for each element, otherwise the data is simply free()'d.\n\n# Arguments\n\n* `[in]` - instance Pointer to the SimpleArray instance to be reset\n\n"]
+    pub fn simple_array_reset(instance: *mut SimpleArray);
+}
+extern "C" {
+    #[doc = "Copy (duplicate) another SimpleArray instance to this one. If copy() is specified in the config, then it is called for each element, otherwise the data is simply memcpy()'d.\n\n# Arguments\n\n* `[in]` - instance Pointer to the SimpleArray instance to copy to\n* `[in]` - other Pointer to the SimpleArray instance to copy from\n\n"]
+    pub fn simple_array_copy(instance: *mut SimpleArray, other: *const SimpleArray);
+}
+extern "C" {
+    #[doc = "Check if another SimpleArray instance is equal (the same object or holds the same data) to this one.\n\nReturns:\n\n* True if instances are considered equal, false otherwise\n\n# Arguments\n\n* `[in]` - instance Pointer to the SimpleArray instance to be compared\n* `[in]` - other Pointer to the SimpleArray instance to be compared\n\n"]
+    pub fn simple_array_is_equal(instance: *const SimpleArray, other: *const SimpleArray) -> bool;
+}
+extern "C" {
+    #[doc = "Get the count of elements currently contained in a SimpleArray instance.\n\nReturns:\n\n* Count of elements contained in the instance\n\n# Arguments\n\n* `[in]` - instance Pointer to the SimpleArray instance to query the count from\n\n"]
+    pub fn simple_array_get_count(instance: *const SimpleArray) -> u32;
+}
+extern "C" {
+    #[doc = "Get a pointer to an element contained in a SimpleArray instance.\n\nReturns:\n\n* Pointer to the element specified by index\n\n# Arguments\n\n* `[in]` - instance Pointer to the SimpleArray instance to get an element from\n* `[in]` - index Index of the element in question. MUST be less than total element count\n\n"]
+    pub fn simple_array_get(instance: *mut SimpleArray, index: u32) -> *mut SimpleArrayElement;
+}
+extern "C" {
+    #[doc = "Get a const pointer to an element contained in a SimpleArray instance.\n\nReturns:\n\n* Const pointer to the element specified by index\n\n# Arguments\n\n* `[in]` - instance Pointer to the SimpleArray instance to get an element from\n* `[in]` - index Index of the element in question. MUST be less than total element count\n\n"]
+    pub fn simple_array_cget(instance: *const SimpleArray, index: u32)
+        -> *const SimpleArrayElement;
+}
+extern "C" {
+    #[doc = "Get a pointer to the internal data of a SimpleArray instance.\n\nReturns:\n\n* Pointer to the instance's internal data\n\n# Arguments\n\n* `[in]` - instance Pointer to the SimpleArray instance to get the data of\n\n"]
+    pub fn simple_array_get_data(instance: *mut SimpleArray) -> *mut SimpleArrayData;
+}
+extern "C" {
+    #[doc = "Get a constant pointer to the internal data of a SimpleArray instance.\n\nReturns:\n\n* Constant pointer to the instance's internal data\n\n# Arguments\n\n* `[in]` - instance Pointer to the SimpleArray instance to get the data of\n\n"]
+    pub fn simple_array_cget_data(instance: *const SimpleArray) -> *const SimpleArrayData;
+}
+extern "C" {
+    pub static simple_array_config_uint8_t: SimpleArrayConfig;
+}
+pub const Iso14443_4aError_Iso14443_4aErrorNone: Iso14443_4aError = 0;
+pub const Iso14443_4aError_Iso14443_4aErrorNotPresent: Iso14443_4aError = 1;
+pub const Iso14443_4aError_Iso14443_4aErrorProtocol: Iso14443_4aError = 2;
+pub const Iso14443_4aError_Iso14443_4aErrorTimeout: Iso14443_4aError = 3;
+pub type Iso14443_4aError = core::ffi::c_uchar;
 pub const Iso14443_4aBitRate_Iso14443_4aBitRateBoth106Kbit: Iso14443_4aBitRate = 0;
 pub const Iso14443_4aBitRate_Iso14443_4aBitRatePiccToPcd212Kbit: Iso14443_4aBitRate = 1;
 pub const Iso14443_4aBitRate_Iso14443_4aBitRatePiccToPcd424Kbit: Iso14443_4aBitRate = 2;
@@ -21744,8 +22362,129 @@ pub const Iso14443_4aFrameOption_Iso14443_4aFrameOptionCid: Iso14443_4aFrameOpti
 pub type Iso14443_4aFrameOption = core::ffi::c_uchar;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
+pub struct Iso14443_4aAtsData {
+    pub tl: u8,
+    pub t0: u8,
+    pub ta_1: u8,
+    pub tb_1: u8,
+    pub tc_1: u8,
+    pub t1_tk: *mut SimpleArray,
+}
+#[test]
+fn bindgen_test_layout_Iso14443_4aAtsData() {
+    const UNINIT: ::core::mem::MaybeUninit<Iso14443_4aAtsData> = ::core::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::core::mem::size_of::<Iso14443_4aAtsData>(),
+        12usize,
+        concat!("Size of: ", stringify!(Iso14443_4aAtsData))
+    );
+    assert_eq!(
+        ::core::mem::align_of::<Iso14443_4aAtsData>(),
+        4usize,
+        concat!("Alignment of ", stringify!(Iso14443_4aAtsData))
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).tl) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(Iso14443_4aAtsData),
+            "::",
+            stringify!(tl)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).t0) as usize - ptr as usize },
+        1usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(Iso14443_4aAtsData),
+            "::",
+            stringify!(t0)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).ta_1) as usize - ptr as usize },
+        2usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(Iso14443_4aAtsData),
+            "::",
+            stringify!(ta_1)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).tb_1) as usize - ptr as usize },
+        3usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(Iso14443_4aAtsData),
+            "::",
+            stringify!(tb_1)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).tc_1) as usize - ptr as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(Iso14443_4aAtsData),
+            "::",
+            stringify!(tc_1)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).t1_tk) as usize - ptr as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(Iso14443_4aAtsData),
+            "::",
+            stringify!(t1_tk)
+        )
+    );
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
 pub struct Iso14443_4aData {
-    _unused: [u8; 0],
+    pub iso14443_3a_data: *mut Iso14443_3aData,
+    pub ats_data: Iso14443_4aAtsData,
+}
+#[test]
+fn bindgen_test_layout_Iso14443_4aData() {
+    const UNINIT: ::core::mem::MaybeUninit<Iso14443_4aData> = ::core::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::core::mem::size_of::<Iso14443_4aData>(),
+        16usize,
+        concat!("Size of: ", stringify!(Iso14443_4aData))
+    );
+    assert_eq!(
+        ::core::mem::align_of::<Iso14443_4aData>(),
+        4usize,
+        concat!("Alignment of ", stringify!(Iso14443_4aData))
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).iso14443_3a_data) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(Iso14443_4aData),
+            "::",
+            stringify!(iso14443_3a_data)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).ats_data) as usize - ptr as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(Iso14443_4aData),
+            "::",
+            stringify!(ats_data)
+        )
+    );
 }
 extern "C" {
     pub fn iso14443_4a_alloc() -> *mut Iso14443_4aData;
@@ -21819,6 +22558,35 @@ extern "C" {
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
+pub struct Iso14443_4aPoller {
+    _unused: [u8; 0],
+}
+extern "C" {
+    #[doc = "Transmit and receive Iso14443_4a blocks in poller mode.\n\nMust ONLY be used inside the callback function.\nThe rx_buffer will be filled with any data received as a response to data sent from tx_buffer. The fwt parameter is calculated during activation procedure.\n\nReturns:\n\n* Iso14443_4aErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `tx_buffer` - [Direction: In] pointer to the buffer containing the data to be transmitted.\n* `rx_buffer` - [Direction: In, Out] pointer to the buffer to be filled with received data.\n\n"]
+    pub fn iso14443_4a_poller_send_block(
+        instance: *mut Iso14443_4aPoller,
+        tx_buffer: *const BitBuffer,
+        rx_buffer: *mut BitBuffer,
+    ) -> Iso14443_4aError;
+}
+extern "C" {
+    #[doc = "Send HALT command to the card.\n\nMust ONLY be used inside the callback function.\nHalts card and changes internal Iso14443_4aPoller state to Idle.\n\nReturns:\n\n* Iso14443_4aErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n\n"]
+    pub fn iso14443_4a_poller_halt(instance: *mut Iso14443_4aPoller) -> Iso14443_4aError;
+}
+extern "C" {
+    #[doc = "Read Answer To Select (ATS) from the card.\n\nMust ONLY be used inside the callback function.\nSend Request Answer To Select (RATS) command to the card and parse the response.\n\nReturns:\n\n* Iso14443_4aErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `data` - [Direction: In, Out] pointer to the buffer to be filled with ATS data.\n\n"]
+    pub fn iso14443_4a_poller_read_ats(
+        instance: *mut Iso14443_4aPoller,
+        data: *mut Iso14443_4aAtsData,
+    ) -> Iso14443_4aError;
+}
+pub const Iso14443_4bError_Iso14443_4bErrorNone: Iso14443_4bError = 0;
+pub const Iso14443_4bError_Iso14443_4bErrorNotPresent: Iso14443_4bError = 1;
+pub const Iso14443_4bError_Iso14443_4bErrorProtocol: Iso14443_4bError = 2;
+pub const Iso14443_4bError_Iso14443_4bErrorTimeout: Iso14443_4bError = 3;
+pub type Iso14443_4bError = core::ffi::c_uchar;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
 pub struct Iso14443_4bData {
     _unused: [u8; 0],
 }
@@ -21868,6 +22636,23 @@ extern "C" {
 extern "C" {
     pub fn iso14443_4b_get_base_data(data: *const Iso14443_4bData) -> *mut Iso14443_3bData;
 }
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct Iso14443_4bPoller {
+    _unused: [u8; 0],
+}
+extern "C" {
+    #[doc = "Transmit and receive Iso14443_4b blocks in poller mode.\n\nMust ONLY be used inside the callback function.\nThe rx_buffer will be filled with any data received as a response to data sent from tx_buffer. The fwt parameter is calculated during activation procedure.\n\nReturns:\n\n* Iso14443_4bErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `tx_buffer` - [Direction: In] pointer to the buffer containing the data to be transmitted.\n* `rx_buffer` - [Direction: In, Out] pointer to the buffer to be filled with received data.\n\n"]
+    pub fn iso14443_4b_poller_send_block(
+        instance: *mut Iso14443_4bPoller,
+        tx_buffer: *const BitBuffer,
+        rx_buffer: *mut BitBuffer,
+    ) -> Iso14443_4bError;
+}
+extern "C" {
+    #[doc = "Send HALT command to the card.\n\nMust ONLY be used inside the callback function.\nHalts card and changes internal Iso14443_4aPoller state to Idle.\n\nReturns:\n\n* Iso14443_4bErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n\n"]
+    pub fn iso14443_4b_poller_halt(instance: *mut Iso14443_4bPoller) -> Iso14443_4bError;
+}
 pub const MfClassicError_MfClassicErrorNone: MfClassicError = 0;
 pub const MfClassicError_MfClassicErrorNotPresent: MfClassicError = 1;
 pub const MfClassicError_MfClassicErrorProtocol: MfClassicError = 2;
@@ -21890,6 +22675,11 @@ pub const MfClassicAction_MfClassicActionKeyBWrite: MfClassicAction = 7;
 pub const MfClassicAction_MfClassicActionACRead: MfClassicAction = 8;
 pub const MfClassicAction_MfClassicActionACWrite: MfClassicAction = 9;
 pub type MfClassicAction = core::ffi::c_uchar;
+pub const MfClassicValueCommand_MfClassicValueCommandIncrement: MfClassicValueCommand = 0;
+pub const MfClassicValueCommand_MfClassicValueCommandDecrement: MfClassicValueCommand = 1;
+pub const MfClassicValueCommand_MfClassicValueCommandRestore: MfClassicValueCommand = 2;
+pub const MfClassicValueCommand_MfClassicValueCommandInvalid: MfClassicValueCommand = 3;
+pub type MfClassicValueCommand = core::ffi::c_uchar;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct MfClassicBlock {
@@ -22584,8 +23374,87 @@ extern "C" {
         action: MfClassicAction,
     ) -> bool;
 }
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct MfClassicPoller {
+    _unused: [u8; 0],
+}
 extern "C" {
-    pub fn mf_classic_poller_collect_nt(
+    #[doc = "Collect tag nonce during authentication.\n\nMust ONLY be used inside the callback function.\nStarts authentication procedure and collects tag nonce.\n\nReturns:\n\n* MfClassicErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `block_num` - [Direction: In] block number for authentication.\n* `key_type` - [Direction: In] key type to be used for authentication.\n* `nt` - [Direction: In, Out] pointer to the MfClassicNt structure to be filled with nonce data.\n\n"]
+    pub fn mf_classic_poller_get_nt(
+        instance: *mut MfClassicPoller,
+        block_num: u8,
+        key_type: MfClassicKeyType,
+        nt: *mut MfClassicNt,
+    ) -> MfClassicError;
+}
+extern "C" {
+    #[doc = "Collect tag nonce during nested authentication.\n\nMust ONLY be used inside the callback function.\nStarts nested authentication procedure and collects tag nonce.\n\nReturns:\n\n* MfClassicErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `block_num` - [Direction: In] block number for authentication.\n* `key_type` - [Direction: In] key type to be used for authentication.\n* `nt` - [Direction: In, Out] pointer to the MfClassicNt structure to be filled with nonce data.\n\n"]
+    pub fn mf_classic_poller_get_nt_nested(
+        instance: *mut MfClassicPoller,
+        block_num: u8,
+        key_type: MfClassicKeyType,
+        nt: *mut MfClassicNt,
+    ) -> MfClassicError;
+}
+extern "C" {
+    #[doc = "Perform authentication.\n\nMust ONLY be used inside the callback function.\nPerform authentication as specified in Mf Classic protocol. Initialize crypto state for futher communication with the tag.\n\nReturns:\n\n* MfClassicErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `block_num` - [Direction: In] block number for authentication.\n* `key` - [Direction: In] key to be used for authentication.\n* `key_type` - [Direction: In] key type to be used for authentication.\n* `data` - [Direction: In, Out] pointer to MfClassicAuthContext structure to be filled with authentication data.\n\n"]
+    pub fn mf_classic_poller_auth(
+        instance: *mut MfClassicPoller,
+        block_num: u8,
+        key: *mut MfClassicKey,
+        key_type: MfClassicKeyType,
+        data: *mut MfClassicAuthContext,
+    ) -> MfClassicError;
+}
+extern "C" {
+    #[doc = "Perform nested authentication.\n\nMust ONLY be used inside the callback function.\nPerform nested  authentication as specified in Mf Classic protocol.\n\nReturns:\n\n* MfClassicErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `block_num` - [Direction: In] block number for authentication.\n* `key` - [Direction: In] key to be used for authentication.\n* `key_type` - [Direction: In] key type to be used for authentication.\n* `data` - [Direction: In, Out] pointer to MfClassicAuthContext structure to be filled with authentication data.\n\n"]
+    pub fn mf_classic_poller_auth_nested(
+        instance: *mut MfClassicPoller,
+        block_num: u8,
+        key: *mut MfClassicKey,
+        key_type: MfClassicKeyType,
+        data: *mut MfClassicAuthContext,
+    ) -> MfClassicError;
+}
+extern "C" {
+    #[doc = "Halt the tag.\n\nMust ONLY be used inside the callback function.\nHalt the tag and reset crypto state of the poller.\n\nReturns:\n\n* MfClassicErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n\n"]
+    pub fn mf_classic_poller_halt(instance: *mut MfClassicPoller) -> MfClassicError;
+}
+extern "C" {
+    #[doc = "Read block from tag.\n\nMust ONLY be used inside the callback function.\n\nReturns:\n\n* MfClassicErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `block_num` - [Direction: In] block number to be read.\n* `data` - [Direction: In, Out] pointer to the MfClassicBlock structure to be filled with block data.\n\n"]
+    pub fn mf_classic_poller_read_block(
+        instance: *mut MfClassicPoller,
+        block_num: u8,
+        data: *mut MfClassicBlock,
+    ) -> MfClassicError;
+}
+extern "C" {
+    #[doc = "Write block to tag.\n\nMust ONLY be used inside the callback function.\n\nReturns:\n\n* MfClassicErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `block_num` - [Direction: In] block number to be written.\n* `data` - [Direction: In] pointer to the MfClassicBlock structure to be written.\n\n"]
+    pub fn mf_classic_poller_write_block(
+        instance: *mut MfClassicPoller,
+        block_num: u8,
+        data: *mut MfClassicBlock,
+    ) -> MfClassicError;
+}
+extern "C" {
+    #[doc = "Perform value command on tag.\n\nMust ONLY be used inside the callback function.\nPerform Increment, Decrement or Restore command on tag. The result is stored in internal transfer block of the tag. Use mf_classic_poller_value_transfer to transfer the result to the tag.\n\nReturns:\n\n* MfClassicErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `block_num` - [Direction: In] block number to be used for value command.\n* `cmd` - [Direction: In] value command to be performed.\n* `data` - [Direction: In] value to be used for value command.\n\n"]
+    pub fn mf_classic_poller_value_cmd(
+        instance: *mut MfClassicPoller,
+        block_num: u8,
+        cmd: MfClassicValueCommand,
+        data: i32,
+    ) -> MfClassicError;
+}
+extern "C" {
+    #[doc = "Transfer internal transfer block to tag.\n\nMust ONLY be used inside the callback function.\nTransfer internal transfer block to tag. The block is filled by mf_classic_poller_value_cmd.\n\nReturns:\n\n* MfClassicErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `block_num` - [Direction: In] block number to be used for value command.\n\n"]
+    pub fn mf_classic_poller_value_transfer(
+        instance: *mut MfClassicPoller,
+        block_num: u8,
+    ) -> MfClassicError;
+}
+extern "C" {
+    pub fn mf_classic_poller_sync_collect_nt(
         nfc: *mut Nfc,
         block_num: u8,
         key_type: MfClassicKeyType,
@@ -22593,7 +23462,7 @@ extern "C" {
     ) -> MfClassicError;
 }
 extern "C" {
-    pub fn mf_classic_poller_auth(
+    pub fn mf_classic_poller_sync_auth(
         nfc: *mut Nfc,
         block_num: u8,
         key: *mut MfClassicKey,
@@ -22602,7 +23471,7 @@ extern "C" {
     ) -> MfClassicError;
 }
 extern "C" {
-    pub fn mf_classic_poller_read_block(
+    pub fn mf_classic_poller_sync_read_block(
         nfc: *mut Nfc,
         block_num: u8,
         key: *mut MfClassicKey,
@@ -22611,7 +23480,7 @@ extern "C" {
     ) -> MfClassicError;
 }
 extern "C" {
-    pub fn mf_classic_poller_write_block(
+    pub fn mf_classic_poller_sync_write_block(
         nfc: *mut Nfc,
         block_num: u8,
         key: *mut MfClassicKey,
@@ -22620,7 +23489,7 @@ extern "C" {
     ) -> MfClassicError;
 }
 extern "C" {
-    pub fn mf_classic_poller_read_value(
+    pub fn mf_classic_poller_sync_read_value(
         nfc: *mut Nfc,
         block_num: u8,
         key: *mut MfClassicKey,
@@ -22629,7 +23498,7 @@ extern "C" {
     ) -> MfClassicError;
 }
 extern "C" {
-    pub fn mf_classic_poller_change_value(
+    pub fn mf_classic_poller_sync_change_value(
         nfc: *mut Nfc,
         block_num: u8,
         key: *mut MfClassicKey,
@@ -22639,146 +23508,17 @@ extern "C" {
     ) -> MfClassicError;
 }
 extern "C" {
-    pub fn mf_classic_poller_detect_type(
+    pub fn mf_classic_poller_sync_detect_type(
         nfc: *mut Nfc,
         type_: *mut MfClassicType,
     ) -> MfClassicError;
 }
 extern "C" {
-    pub fn mf_classic_poller_read(
+    pub fn mf_classic_poller_sync_read(
         nfc: *mut Nfc,
         keys: *const MfClassicDeviceKeys,
         data: *mut MfClassicData,
     ) -> MfClassicError;
-}
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct SimpleArray {
-    _unused: [u8; 0],
-}
-pub type SimpleArrayData = core::ffi::c_void;
-pub type SimpleArrayElement = core::ffi::c_void;
-pub type SimpleArrayInit =
-    ::core::option::Option<unsafe extern "C" fn(elem: *mut SimpleArrayElement)>;
-pub type SimpleArrayReset =
-    ::core::option::Option<unsafe extern "C" fn(elem: *mut SimpleArrayElement)>;
-pub type SimpleArrayCopy = ::core::option::Option<
-    unsafe extern "C" fn(elem: *mut SimpleArrayElement, other: *const SimpleArrayElement),
->;
-#[doc = "Simple Array configuration structure. Defined per type.\n\n"]
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct SimpleArrayConfig {
-    #[doc = "Initialisation (in-place constructor) method.\n\n"]
-    pub init: SimpleArrayInit,
-    #[doc = "Reset (custom destructor) method.\n\n"]
-    pub reset: SimpleArrayReset,
-    #[doc = "Copy (custom copy-constructor) method.\n\n"]
-    pub copy: SimpleArrayCopy,
-    pub type_size: usize,
-}
-#[test]
-fn bindgen_test_layout_SimpleArrayConfig() {
-    const UNINIT: ::core::mem::MaybeUninit<SimpleArrayConfig> = ::core::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::core::mem::size_of::<SimpleArrayConfig>(),
-        16usize,
-        concat!("Size of: ", stringify!(SimpleArrayConfig))
-    );
-    assert_eq!(
-        ::core::mem::align_of::<SimpleArrayConfig>(),
-        4usize,
-        concat!("Alignment of ", stringify!(SimpleArrayConfig))
-    );
-    assert_eq!(
-        unsafe { ::core::ptr::addr_of!((*ptr).init) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(SimpleArrayConfig),
-            "::",
-            stringify!(init)
-        )
-    );
-    assert_eq!(
-        unsafe { ::core::ptr::addr_of!((*ptr).reset) as usize - ptr as usize },
-        4usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(SimpleArrayConfig),
-            "::",
-            stringify!(reset)
-        )
-    );
-    assert_eq!(
-        unsafe { ::core::ptr::addr_of!((*ptr).copy) as usize - ptr as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(SimpleArrayConfig),
-            "::",
-            stringify!(copy)
-        )
-    );
-    assert_eq!(
-        unsafe { ::core::ptr::addr_of!((*ptr).type_size) as usize - ptr as usize },
-        12usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(SimpleArrayConfig),
-            "::",
-            stringify!(type_size)
-        )
-    );
-}
-extern "C" {
-    #[doc = "Allocate a SimpleArray instance with the given configuration.\n\nReturns:\n\n* Pointer to the allocated SimpleArray instance\n\n# Arguments\n\n* `[in]` - config Pointer to the type-specific configuration\n\n"]
-    pub fn simple_array_alloc(config: *const SimpleArrayConfig) -> *mut SimpleArray;
-}
-extern "C" {
-    #[doc = "Free a SimpleArray instance and release its contents.\n\n# Arguments\n\n* `[in]` - instance Pointer to the SimpleArray instance to be freed\n\n"]
-    pub fn simple_array_free(instance: *mut SimpleArray);
-}
-extern "C" {
-    #[doc = "Initialise a SimpleArray instance by allocating additional space to contain the requested number of elements. If init() is specified in the config, then it is called for each element, otherwise the data is filled with zeroes.\n\n# Arguments\n\n* `[in]` - instance Pointer to the SimpleArray instance to be init'd\n* `[in]` - count Number of elements to be allocated and init'd\n\n"]
-    pub fn simple_array_init(instance: *mut SimpleArray, count: u32);
-}
-extern "C" {
-    #[doc = "Reset a SimpleArray instance and delete all of its elements. If reset() is specified in the config, then it is called for each element, otherwise the data is simply free()'d.\n\n# Arguments\n\n* `[in]` - instance Pointer to the SimpleArray instance to be reset\n\n"]
-    pub fn simple_array_reset(instance: *mut SimpleArray);
-}
-extern "C" {
-    #[doc = "Copy (duplicate) another SimpleArray instance to this one. If copy() is specified in the config, then it is called for each element, otherwise the data is simply memcpy()'d.\n\n# Arguments\n\n* `[in]` - instance Pointer to the SimpleArray instance to copy to\n* `[in]` - other Pointer to the SimpleArray instance to copy from\n\n"]
-    pub fn simple_array_copy(instance: *mut SimpleArray, other: *const SimpleArray);
-}
-extern "C" {
-    #[doc = "Check if another SimpleArray instance is equal (the same object or holds the same data) to this one.\n\nReturns:\n\n* True if instances are considered equal, false otherwise\n\n# Arguments\n\n* `[in]` - instance Pointer to the SimpleArray instance to be compared\n* `[in]` - other Pointer to the SimpleArray instance to be compared\n\n"]
-    pub fn simple_array_is_equal(instance: *const SimpleArray, other: *const SimpleArray) -> bool;
-}
-extern "C" {
-    #[doc = "Get the count of elements currently contained in a SimpleArray instance.\n\nReturns:\n\n* Count of elements contained in the instance\n\n# Arguments\n\n* `[in]` - instance Pointer to the SimpleArray instance to query the count from\n\n"]
-    pub fn simple_array_get_count(instance: *const SimpleArray) -> u32;
-}
-extern "C" {
-    #[doc = "Get a pointer to an element contained in a SimpleArray instance.\n\nReturns:\n\n* Pointer to the element specified by index\n\n# Arguments\n\n* `[in]` - instance Pointer to the SimpleArray instance to get an element from\n* `[in]` - index Index of the element in question. MUST be less than total element count\n\n"]
-    pub fn simple_array_get(instance: *mut SimpleArray, index: u32) -> *mut SimpleArrayElement;
-}
-extern "C" {
-    #[doc = "Get a const pointer to an element contained in a SimpleArray instance.\n\nReturns:\n\n* Const pointer to the element specified by index\n\n# Arguments\n\n* `[in]` - instance Pointer to the SimpleArray instance to get an element from\n* `[in]` - index Index of the element in question. MUST be less than total element count\n\n"]
-    pub fn simple_array_cget(instance: *const SimpleArray, index: u32)
-        -> *const SimpleArrayElement;
-}
-extern "C" {
-    #[doc = "Get a pointer to the internal data of a SimpleArray instance.\n\nReturns:\n\n* Pointer to the instance's internal data\n\n# Arguments\n\n* `[in]` - instance Pointer to the SimpleArray instance to get the data of\n\n"]
-    pub fn simple_array_get_data(instance: *mut SimpleArray) -> *mut SimpleArrayData;
-}
-extern "C" {
-    #[doc = "Get a constant pointer to the internal data of a SimpleArray instance.\n\nReturns:\n\n* Constant pointer to the instance's internal data\n\n# Arguments\n\n* `[in]` - instance Pointer to the SimpleArray instance to get the data of\n\n"]
-    pub fn simple_array_cget_data(instance: *const SimpleArray) -> *const SimpleArrayData;
-}
-extern "C" {
-    pub static simple_array_config_uint8_t: SimpleArrayConfig;
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -23563,6 +24303,11 @@ fn bindgen_test_layout_MfDesfireApplication() {
         )
     );
 }
+pub const MfDesfireError_MfDesfireErrorNone: MfDesfireError = 0;
+pub const MfDesfireError_MfDesfireErrorNotPresent: MfDesfireError = 1;
+pub const MfDesfireError_MfDesfireErrorProtocol: MfDesfireError = 2;
+pub const MfDesfireError_MfDesfireErrorTimeout: MfDesfireError = 3;
+pub type MfDesfireError = core::ffi::c_uchar;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct MfDesfireData {
@@ -23716,6 +24461,137 @@ extern "C" {
         file_id: *const MfDesfireFileId,
     ) -> *const MfDesfireFileData;
 }
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct MfDesfirePoller {
+    _unused: [u8; 0],
+}
+extern "C" {
+    #[doc = "Transmit and receive MfDesfire chunks in poller mode.\n\nMust ONLY be used inside the callback function.\nThe rx_buffer will be filled with any data received as a response to data sent from tx_buffer, with a timeout defined by the fwt parameter.\n\nReturns:\n\n* MfDesfireErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `tx_buffer` - [Direction: In] pointer to the buffer containing the data to be transmitted.\n* `rx_buffer` - [Direction: In, Out] pointer to the buffer to be filled with received data.\n\n"]
+    pub fn mf_desfire_send_chunks(
+        instance: *mut MfDesfirePoller,
+        tx_buffer: *const BitBuffer,
+        rx_buffer: *mut BitBuffer,
+    ) -> MfDesfireError;
+}
+extern "C" {
+    #[doc = "Read MfDesfire card version.\n\nMust ONLY be used inside the callback function.\n\nReturns:\n\n* MfDesfireErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `data` - [Direction: In, Out] pointer to the MfDesfireVersion structure to be filled with version data.\n\n"]
+    pub fn mf_desfire_poller_read_version(
+        instance: *mut MfDesfirePoller,
+        data: *mut MfDesfireVersion,
+    ) -> MfDesfireError;
+}
+extern "C" {
+    #[doc = "Read free memory available on MfDesfire card.\n\nMust ONLY be used inside the callback function.\n\nReturns:\n\n* MfDesfireErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `data` - [Direction: In, Out] pointer to the MfDesfireFreeMemory structure to be filled with free memory data.\n\n"]
+    pub fn mf_desfire_poller_read_free_memory(
+        instance: *mut MfDesfirePoller,
+        data: *mut MfDesfireFreeMemory,
+    ) -> MfDesfireError;
+}
+extern "C" {
+    #[doc = "Read key settings on MfDesfire card.\n\nMust ONLY be used inside the callback function.\n\nReturns:\n\n* MfDesfireErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `data` - [Direction: In, Out] pointer to the MfDesfireKeySettings structure to be filled with key settings data.\n\n"]
+    pub fn mf_desfire_poller_read_key_settings(
+        instance: *mut MfDesfirePoller,
+        data: *mut MfDesfireKeySettings,
+    ) -> MfDesfireError;
+}
+extern "C" {
+    #[doc = "Read key versions on MfDesfire card.\n\nMust ONLY be used inside the callback function.\n\nReturns:\n\n* MfDesfireErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `data` - [Direction: In, Out] pointer to the SimpleArray structure to be filled with key versions data.\n* `count` - [Direction: In] number of key versions to read.\n\n"]
+    pub fn mf_desfire_poller_read_key_versions(
+        instance: *mut MfDesfirePoller,
+        data: *mut SimpleArray,
+        count: u32,
+    ) -> MfDesfireError;
+}
+extern "C" {
+    #[doc = "Read applications IDs on MfDesfire card.\n\nMust ONLY be used inside the callback function.\n\nReturns:\n\n* MfDesfireErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `data` - [Direction: In, Out] pointer to the SimpleArray structure to be filled with application ids data.\n\n"]
+    pub fn mf_desfire_poller_read_application_ids(
+        instance: *mut MfDesfirePoller,
+        data: *mut SimpleArray,
+    ) -> MfDesfireError;
+}
+extern "C" {
+    #[doc = "Select application on MfDesfire card.\n\nMust ONLY be used inside the callback function.\n\nReturns:\n\n* MfDesfireErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `id` - [Direction: In] pointer to the MfDesfireApplicationId structure with application id to select.\n\n"]
+    pub fn mf_desfire_poller_select_application(
+        instance: *mut MfDesfirePoller,
+        id: *const MfDesfireApplicationId,
+    ) -> MfDesfireError;
+}
+extern "C" {
+    #[doc = "Read file IDs for selected application on MfDesfire card.\n\nMust ONLY be used inside the callback function.\n\nReturns:\n\n* MfDesfireErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `data` - [Direction: In, Out] pointer to the SimpleArray structure to be filled with file ids data.\n\n"]
+    pub fn mf_desfire_poller_read_file_ids(
+        instance: *mut MfDesfirePoller,
+        data: *mut SimpleArray,
+    ) -> MfDesfireError;
+}
+extern "C" {
+    #[doc = "Read file settings on MfDesfire card.\n\nMust ONLY be used inside the callback function.\n\nReturns:\n\n* MfDesfireErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `id` - [Direction: In] file id to read settings for.\n* `data` - [Direction: In, Out] pointer to the MfDesfireFileSettings structure to be filled with file settings data.\n\n"]
+    pub fn mf_desfire_poller_read_file_settings(
+        instance: *mut MfDesfirePoller,
+        id: MfDesfireFileId,
+        data: *mut MfDesfireFileSettings,
+    ) -> MfDesfireError;
+}
+extern "C" {
+    #[doc = "Read multiple file settings on MfDesfire card.\n\nMust ONLY be used inside the callback function.\n\nReturns:\n\n* MfDesfireErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `file_ids` - [Direction: In] pointer to the SimpleArray structure array with file ids to read settings for.\n* `data` - [Direction: In, Out] pointer to the SimpleArray structure array to be filled with file settings data.\n\n"]
+    pub fn mf_desfire_poller_read_file_settings_multi(
+        instance: *mut MfDesfirePoller,
+        file_ids: *const SimpleArray,
+        data: *mut SimpleArray,
+    ) -> MfDesfireError;
+}
+extern "C" {
+    #[doc = "Read file data on MfDesfire card.\n\nMust ONLY be used inside the callback function.\n\nReturns:\n\n* MfDesfireErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `id` - [Direction: In] file id to read data from.\n* `offset` - [Direction: In] offset in bytes to start reading from.\n* `size` - [Direction: In] number of bytes to read.\n* `data` - [Direction: In, Out] pointer to the MfDesfireFileData structure to be filled with file data.\n\n"]
+    pub fn mf_desfire_poller_read_file_data(
+        instance: *mut MfDesfirePoller,
+        id: MfDesfireFileId,
+        offset: u32,
+        size: usize,
+        data: *mut MfDesfireFileData,
+    ) -> MfDesfireError;
+}
+extern "C" {
+    #[doc = "Read file value on MfDesfire card.\n\nMust ONLY be used inside the callback function.\n\nReturns:\n\n* MfDesfireErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `id` - [Direction: In] file id to read value from.\n* `data` - [Direction: In, Out] pointer to the MfDesfireFileData structure to be filled with file value.\n\n"]
+    pub fn mf_desfire_poller_read_file_value(
+        instance: *mut MfDesfirePoller,
+        id: MfDesfireFileId,
+        data: *mut MfDesfireFileData,
+    ) -> MfDesfireError;
+}
+extern "C" {
+    #[doc = "Read file records on MfDesfire card.\n\nMust ONLY be used inside the callback function.\n\nReturns:\n\n* MfDesfireErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `id` - [Direction: In] file id to read data from.\n* `offset` - [Direction: In] offset in bytes to start reading from.\n* `size` - [Direction: In] number of bytes to read.\n* `data` - [Direction: In, Out] pointer to the MfDesfireFileData structure to be filled with file records data.\n\n"]
+    pub fn mf_desfire_poller_read_file_records(
+        instance: *mut MfDesfirePoller,
+        id: MfDesfireFileId,
+        offset: u32,
+        size: usize,
+        data: *mut MfDesfireFileData,
+    ) -> MfDesfireError;
+}
+extern "C" {
+    #[doc = "Read data from multiple files on MfDesfire card.\n\nMust ONLY be used inside the callback function.\n\nReturns:\n\n* MfDesfireErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `file_ids` - [Direction: In] pointer to the SimpleArray structure array with files ids to read data from.\n* `file_settings` - [Direction: In] pointer to the SimpleArray structure array with files settings to read data from.\n* `data` - [Direction: In, Out] pointer to the SimpleArray structure array to be filled with files data.\n\n"]
+    pub fn mf_desfire_poller_read_file_data_multi(
+        instance: *mut MfDesfirePoller,
+        file_ids: *const SimpleArray,
+        file_settings: *const SimpleArray,
+        data: *mut SimpleArray,
+    ) -> MfDesfireError;
+}
+extern "C" {
+    #[doc = "Read application data for selected application on MfDesfire card.\n\nMust ONLY be used inside the callback function.\n\nReturns:\n\n* MfDesfireErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `data` - [Direction: In, Out] pointer to the MfDesfireApplication structure to be filled with application data.\n\n"]
+    pub fn mf_desfire_poller_read_application(
+        instance: *mut MfDesfirePoller,
+        data: *mut MfDesfireApplication,
+    ) -> MfDesfireError;
+}
+extern "C" {
+    #[doc = "Read multiple applications data on MfDesfire card.\n\nMust ONLY be used inside the callback function.\n\nReturns:\n\n* MfDesfireErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `app_ids` - [Direction: In] pointer to the SimpleArray structure array with application ids to read data from.\n* `data` - [Direction: In, Out] pointer to the SimpleArray structure array to be filled with applications data.\n\n"]
+    pub fn mf_desfire_poller_read_applications(
+        instance: *mut MfDesfirePoller,
+        app_ids: *const SimpleArray,
+        data: *mut SimpleArray,
+    ) -> MfDesfireError;
+}
 pub const MfUltralightError_MfUltralightErrorNone: MfUltralightError = 0;
 pub const MfUltralightError_MfUltralightErrorNotPresent: MfUltralightError = 1;
 pub const MfUltralightError_MfUltralightErrorProtocol: MfUltralightError = 2;
@@ -23763,6 +24639,37 @@ fn bindgen_test_layout_MfUltralightPage() {
             stringify!(MfUltralightPage),
             "::",
             stringify!(data)
+        )
+    );
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct MfUltralightPageReadCommandData {
+    pub page: [MfUltralightPage; 4usize],
+}
+#[test]
+fn bindgen_test_layout_MfUltralightPageReadCommandData() {
+    const UNINIT: ::core::mem::MaybeUninit<MfUltralightPageReadCommandData> =
+        ::core::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::core::mem::size_of::<MfUltralightPageReadCommandData>(),
+        16usize,
+        concat!("Size of: ", stringify!(MfUltralightPageReadCommandData))
+    );
+    assert_eq!(
+        ::core::mem::align_of::<MfUltralightPageReadCommandData>(),
+        1usize,
+        concat!("Alignment of ", stringify!(MfUltralightPageReadCommandData))
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).page) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(MfUltralightPageReadCommandData),
+            "::",
+            stringify!(page)
         )
     );
 }
@@ -24712,48 +25619,190 @@ extern "C" {
 extern "C" {
     pub fn mf_ultralight_is_counter_configured(data: *const MfUltralightData) -> bool;
 }
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct MfUltralightPoller {
+    _unused: [u8; 0],
+}
+#[doc = "MfUltralight poller authentication context.\n\n"]
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct MfUltralightPollerAuthContext {
+    #[doc = "Password to be used for authentication.\n\n"]
+    pub password: MfUltralightAuthPassword,
+    #[doc = "Pack received on successfull authentication.\n\n"]
+    pub pack: MfUltralightAuthPack,
+    #[doc = "Set to true if authentication succeeded, false otherwise.\n\n"]
+    pub auth_success: bool,
+    #[doc = "Set to true if authentication should be skipped, false otherwise.\n\n"]
+    pub skip_auth: bool,
+}
+#[test]
+fn bindgen_test_layout_MfUltralightPollerAuthContext() {
+    const UNINIT: ::core::mem::MaybeUninit<MfUltralightPollerAuthContext> =
+        ::core::mem::MaybeUninit::uninit();
+    let ptr = UNINIT.as_ptr();
+    assert_eq!(
+        ::core::mem::size_of::<MfUltralightPollerAuthContext>(),
+        8usize,
+        concat!("Size of: ", stringify!(MfUltralightPollerAuthContext))
+    );
+    assert_eq!(
+        ::core::mem::align_of::<MfUltralightPollerAuthContext>(),
+        1usize,
+        concat!("Alignment of ", stringify!(MfUltralightPollerAuthContext))
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).password) as usize - ptr as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(MfUltralightPollerAuthContext),
+            "::",
+            stringify!(password)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).pack) as usize - ptr as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(MfUltralightPollerAuthContext),
+            "::",
+            stringify!(pack)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).auth_success) as usize - ptr as usize },
+        6usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(MfUltralightPollerAuthContext),
+            "::",
+            stringify!(auth_success)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).skip_auth) as usize - ptr as usize },
+        7usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(MfUltralightPollerAuthContext),
+            "::",
+            stringify!(skip_auth)
+        )
+    );
+}
 extern "C" {
+    #[doc = "Perform authentication with password.\n\nMust ONLY be used inside the callback function.\n\nReturns:\n\n* MfUltralightErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `out]` - data pointer to the authentication context.\n\n"]
+    pub fn mf_ultralight_poller_auth_pwd(
+        instance: *mut MfUltralightPoller,
+        data: *mut MfUltralightPollerAuthContext,
+    ) -> MfUltralightError;
+}
+extern "C" {
+    #[doc = "Start authentication procedure.\n\nMust ONLY be used inside the callback function.\nThis function now is used only to identify Mf Ultralight C cards.\n\nReturns:\n\n* MfUltralightErrorNone if card supports authentication command, an error code on otherwise.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n\n"]
+    pub fn mf_ultralight_poller_authenticate(
+        instance: *mut MfUltralightPoller,
+    ) -> MfUltralightError;
+}
+extern "C" {
+    #[doc = "Read page from card.\n\nMust ONLY be used inside the callback function.\nSend read command and parse response. The response on this command is data of 4 pages starting from the page specified in the command.\n\nReturns:\n\n* MfUltralightErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `start_page` - [Direction: In] page number to be read.\n* `data` - [Direction: In, Out] pointer to the MfUltralightPageReadCommandData structure to be filled with page data.\n\n"]
     pub fn mf_ultralight_poller_read_page(
-        nfc: *mut Nfc,
-        page: u16,
-        data: *mut MfUltralightPage,
+        instance: *mut MfUltralightPoller,
+        start_page: u8,
+        data: *mut MfUltralightPageReadCommandData,
     ) -> MfUltralightError;
 }
 extern "C" {
+    #[doc = "Read page from sector.\n\nMust ONLY be used inside the callback function.\nThis command should be used for NTAGI2C tags.\n\nReturns:\n\n* MfUltralightErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `sector` - [Direction: In] sector number to be read.\n* `tag` - [Direction: In] tag number to be read.\n* `data` - [Direction: In, Out] pointer to the MfUltralightPageReadCommandData structure to be filled with page data.\n\n"]
+    pub fn mf_ultralight_poller_read_page_from_sector(
+        instance: *mut MfUltralightPoller,
+        sector: u8,
+        tag: u8,
+        data: *mut MfUltralightPageReadCommandData,
+    ) -> MfUltralightError;
+}
+extern "C" {
+    #[doc = "Write page to card.\n\nMust ONLY be used inside the callback function.\n\nReturns:\n\n* MfUltralightErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `page` - [Direction: In] page number to be written.\n* `data` - [Direction: In] pointer to the MfUltralightPage structure to be written.\n\n"]
     pub fn mf_ultralight_poller_write_page(
+        instance: *mut MfUltralightPoller,
+        page: u8,
+        data: *const MfUltralightPage,
+    ) -> MfUltralightError;
+}
+extern "C" {
+    #[doc = "Read version from card.\n\nMust ONLY be used inside the callback function.\n\nReturns:\n\n* MfUltralightErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `data` - [Direction: In, Out] pointer to the MfUltralightVersion structure to be filled.\n\n"]
+    pub fn mf_ultralight_poller_read_version(
+        instance: *mut MfUltralightPoller,
+        data: *mut MfUltralightVersion,
+    ) -> MfUltralightError;
+}
+extern "C" {
+    #[doc = "Read signature from card.\n\nMust ONLY be used inside the callback function.\n\nReturns:\n\n* MfUltralightErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `data` - [Direction: In, Out] pointer to the MfUltralightSignature structure to be filled.\n\n"]
+    pub fn mf_ultralight_poller_read_signature(
+        instance: *mut MfUltralightPoller,
+        data: *mut MfUltralightSignature,
+    ) -> MfUltralightError;
+}
+extern "C" {
+    #[doc = "Read counter from card.\n\nMust ONLY be used inside the callback function.\n\nReturns:\n\n* MfUltralightErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `counter_num` - [Direction: In] counter number to be read.\n* `data` - [Direction: In, Out] pointer to the MfUltralightCounter structure to be filled.\n\n"]
+    pub fn mf_ultralight_poller_read_counter(
+        instance: *mut MfUltralightPoller,
+        counter_num: u8,
+        data: *mut MfUltralightCounter,
+    ) -> MfUltralightError;
+}
+extern "C" {
+    #[doc = "Read tearing flag from card.\n\nMust ONLY be used inside the callback function.\n\nReturns:\n\n* MfUltralightErrorNone on success, an error code on failure.\n\n# Arguments\n\n* `out]` - instance pointer to the instance to be used in the transaction.\n* `tearing_falg_num` - [Direction: In] tearing flag number to be read.\n* `data` - [Direction: In, Out] pointer to the MfUltralightTearingFlag structure to be filled.\n\n"]
+    pub fn mf_ultralight_poller_read_tearing_flag(
+        instance: *mut MfUltralightPoller,
+        tearing_falg_num: u8,
+        data: *mut MfUltralightTearingFlag,
+    ) -> MfUltralightError;
+}
+extern "C" {
+    pub fn mf_ultralight_poller_sync_read_page(
         nfc: *mut Nfc,
         page: u16,
         data: *mut MfUltralightPage,
     ) -> MfUltralightError;
 }
 extern "C" {
-    pub fn mf_ultralight_poller_read_version(
+    pub fn mf_ultralight_poller_sync_write_page(
+        nfc: *mut Nfc,
+        page: u16,
+        data: *mut MfUltralightPage,
+    ) -> MfUltralightError;
+}
+extern "C" {
+    pub fn mf_ultralight_poller_sync_read_version(
         nfc: *mut Nfc,
         data: *mut MfUltralightVersion,
     ) -> MfUltralightError;
 }
 extern "C" {
-    pub fn mf_ultralight_poller_read_signature(
+    pub fn mf_ultralight_poller_sync_read_signature(
         nfc: *mut Nfc,
         data: *mut MfUltralightSignature,
     ) -> MfUltralightError;
 }
 extern "C" {
-    pub fn mf_ultralight_poller_read_counter(
+    pub fn mf_ultralight_poller_sync_read_counter(
         nfc: *mut Nfc,
         counter_num: u8,
         data: *mut MfUltralightCounter,
     ) -> MfUltralightError;
 }
 extern "C" {
-    pub fn mf_ultralight_poller_read_tearing_flag(
+    pub fn mf_ultralight_poller_sync_read_tearing_flag(
         nfc: *mut Nfc,
         flag_num: u8,
         data: *mut MfUltralightTearingFlag,
     ) -> MfUltralightError;
 }
 extern "C" {
-    pub fn mf_ultralight_poller_read_card(
+    pub fn mf_ultralight_poller_sync_read_card(
         nfc: *mut Nfc,
         data: *mut MfUltralightData,
     ) -> MfUltralightError;
@@ -25331,6 +26380,16 @@ extern "C" {
         password_type: SlixPasswordType,
     ) -> bool;
 }
+pub const St25tbError_St25tbErrorNone: St25tbError = 0;
+pub const St25tbError_St25tbErrorNotPresent: St25tbError = 1;
+pub const St25tbError_St25tbErrorColResFailed: St25tbError = 2;
+pub const St25tbError_St25tbErrorBufferOverflow: St25tbError = 3;
+pub const St25tbError_St25tbErrorCommunication: St25tbError = 4;
+pub const St25tbError_St25tbErrorFieldOff: St25tbError = 5;
+pub const St25tbError_St25tbErrorWrongCrc: St25tbError = 6;
+pub const St25tbError_St25tbErrorTimeout: St25tbError = 7;
+pub const St25tbError_St25tbErrorWriteFailed: St25tbError = 8;
+pub type St25tbError = core::ffi::c_uchar;
 pub const St25tbType_St25tbType512At: St25tbType = 0;
 pub const St25tbType_St25tbType512Ac: St25tbType = 1;
 pub const St25tbType_St25tbTypeX512: St25tbType = 2;
@@ -25346,7 +26405,6 @@ pub struct St25tbData {
     pub type_: St25tbType,
     pub blocks: [u32; 128usize],
     pub system_otp_block: u32,
-    pub chip_id: u8,
 }
 #[test]
 fn bindgen_test_layout_St25tbData() {
@@ -25354,7 +26412,7 @@ fn bindgen_test_layout_St25tbData() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::core::mem::size_of::<St25tbData>(),
-        532usize,
+        528usize,
         concat!("Size of: ", stringify!(St25tbData))
     );
     assert_eq!(
@@ -25402,16 +26460,6 @@ fn bindgen_test_layout_St25tbData() {
             stringify!(system_otp_block)
         )
     );
-    assert_eq!(
-        unsafe { ::core::ptr::addr_of!((*ptr).chip_id) as usize - ptr as usize },
-        528usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(St25tbData),
-            "::",
-            stringify!(chip_id)
-        )
-    );
 }
 extern "C" {
     pub fn st25tb_alloc() -> *mut St25tbData;
@@ -25454,6 +26502,65 @@ extern "C" {
 }
 extern "C" {
     pub fn st25tb_get_base_data(data: *const St25tbData) -> *mut St25tbData;
+}
+extern "C" {
+    pub fn st25tb_get_type_from_uid(uid: *const u8) -> St25tbType;
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct St25tbPoller {
+    _unused: [u8; 0],
+}
+extern "C" {
+    pub fn st25tb_poller_send_frame(
+        instance: *mut St25tbPoller,
+        tx_buffer: *const BitBuffer,
+        rx_buffer: *mut BitBuffer,
+        fwt: u32,
+    ) -> St25tbError;
+}
+extern "C" {
+    pub fn st25tb_poller_initiate(instance: *mut St25tbPoller, chip_id_ptr: *mut u8)
+        -> St25tbError;
+}
+extern "C" {
+    pub fn st25tb_poller_select(instance: *mut St25tbPoller, chip_id_ptr: *mut u8) -> St25tbError;
+}
+extern "C" {
+    pub fn st25tb_poller_get_uid(instance: *mut St25tbPoller, uid: *mut u8) -> St25tbError;
+}
+extern "C" {
+    pub fn st25tb_poller_read_block(
+        instance: *mut St25tbPoller,
+        block: *mut u32,
+        block_number: u8,
+    ) -> St25tbError;
+}
+extern "C" {
+    pub fn st25tb_poller_write_block(
+        instance: *mut St25tbPoller,
+        block: u32,
+        block_number: u8,
+    ) -> St25tbError;
+}
+extern "C" {
+    pub fn st25tb_poller_halt(instance: *mut St25tbPoller) -> St25tbError;
+}
+extern "C" {
+    pub fn st25tb_poller_sync_read_block(
+        nfc: *mut Nfc,
+        block_num: u8,
+        block: *mut u32,
+    ) -> St25tbError;
+}
+extern "C" {
+    pub fn st25tb_poller_sync_write_block(nfc: *mut Nfc, block_num: u8, block: u32) -> St25tbError;
+}
+extern "C" {
+    pub fn st25tb_poller_sync_detect_type(nfc: *mut Nfc, type_: *mut St25tbType) -> St25tbError;
+}
+extern "C" {
+    pub fn st25tb_poller_sync_read(nfc: *mut Nfc, data: *mut St25tbData) -> St25tbError;
 }
 extern "C" {
     pub fn maxim_crc8(data: *const u8, data_size: u8, crc_init: u8) -> u8;
@@ -28527,81 +29634,6 @@ extern "C" {
     pub fn manchester_encoder_finish(state: *mut ManchesterEncoderState)
         -> ManchesterEncoderResult;
 }
-#[doc = "MD5 context structure\n\n"]
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct md5_context {
-    #[doc = "number of bytes processed\n\n"]
-    pub total: [u32; 2usize],
-    #[doc = "intermediate digest state\n\n"]
-    pub state: [u32; 4usize],
-    #[doc = "data block being processed\n\n"]
-    pub buffer: [core::ffi::c_uchar; 64usize],
-}
-#[test]
-fn bindgen_test_layout_md5_context() {
-    const UNINIT: ::core::mem::MaybeUninit<md5_context> = ::core::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::core::mem::size_of::<md5_context>(),
-        88usize,
-        concat!("Size of: ", stringify!(md5_context))
-    );
-    assert_eq!(
-        ::core::mem::align_of::<md5_context>(),
-        4usize,
-        concat!("Alignment of ", stringify!(md5_context))
-    );
-    assert_eq!(
-        unsafe { ::core::ptr::addr_of!((*ptr).total) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(md5_context),
-            "::",
-            stringify!(total)
-        )
-    );
-    assert_eq!(
-        unsafe { ::core::ptr::addr_of!((*ptr).state) as usize - ptr as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(md5_context),
-            "::",
-            stringify!(state)
-        )
-    );
-    assert_eq!(
-        unsafe { ::core::ptr::addr_of!((*ptr).buffer) as usize - ptr as usize },
-        24usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(md5_context),
-            "::",
-            stringify!(buffer)
-        )
-    );
-}
-extern "C" {
-    #[doc = "MD5 context setup\n\n# Arguments\n\n* `ctx` - context to be initialized\n\n"]
-    pub fn md5_starts(ctx: *mut md5_context);
-}
-extern "C" {
-    #[doc = "MD5 process buffer\n\n# Arguments\n\n* `ctx` - MD5 context\n* `input` - buffer holding the data\n* `ilen` - length of the input data\n\n"]
-    pub fn md5_update(ctx: *mut md5_context, input: *const core::ffi::c_uchar, ilen: usize);
-}
-extern "C" {
-    #[doc = "MD5 final digest\n\n# Arguments\n\n* `ctx` - MD5 context\n* `output` - MD5 checksum result\n\n"]
-    pub fn md5_finish(ctx: *mut md5_context, output: *mut core::ffi::c_uchar);
-}
-extern "C" {
-    pub fn md5_process(ctx: *mut md5_context, data: *const core::ffi::c_uchar);
-}
-extern "C" {
-    #[doc = "Output = MD5( input buffer )\n\n# Arguments\n\n* `input` - buffer holding the data\n* `ilen` - length of the input data\n* `output` - MD5 checksum result\n\n"]
-    pub fn md5(input: *const core::ffi::c_uchar, ilen: usize, output: *mut core::ffi::c_uchar);
-}
 extern "C" {
     #[doc = "Generates detailed/random name based on furi_hal flags\n\n# Arguments\n\n* `name` - buffer to write random name\n* `max_name_size` - length of given buffer\n* `prefix` - [Direction: In] The prefix of the name\n\n"]
     pub fn name_generator_make_auto(
@@ -28708,81 +29740,6 @@ extern "C" {
         version: u8,
         payload_size: *mut usize,
     ) -> bool;
-}
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct sha256_context {
-    pub total: [u32; 2usize],
-    pub state: [u32; 8usize],
-    pub wbuf: [u32; 16usize],
-}
-#[test]
-fn bindgen_test_layout_sha256_context() {
-    const UNINIT: ::core::mem::MaybeUninit<sha256_context> = ::core::mem::MaybeUninit::uninit();
-    let ptr = UNINIT.as_ptr();
-    assert_eq!(
-        ::core::mem::size_of::<sha256_context>(),
-        104usize,
-        concat!("Size of: ", stringify!(sha256_context))
-    );
-    assert_eq!(
-        ::core::mem::align_of::<sha256_context>(),
-        4usize,
-        concat!("Alignment of ", stringify!(sha256_context))
-    );
-    assert_eq!(
-        unsafe { ::core::ptr::addr_of!((*ptr).total) as usize - ptr as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(sha256_context),
-            "::",
-            stringify!(total)
-        )
-    );
-    assert_eq!(
-        unsafe { ::core::ptr::addr_of!((*ptr).state) as usize - ptr as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(sha256_context),
-            "::",
-            stringify!(state)
-        )
-    );
-    assert_eq!(
-        unsafe { ::core::ptr::addr_of!((*ptr).wbuf) as usize - ptr as usize },
-        40usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(sha256_context),
-            "::",
-            stringify!(wbuf)
-        )
-    );
-}
-extern "C" {
-    pub fn sha256(
-        input: *const core::ffi::c_uchar,
-        ilen: core::ffi::c_uint,
-        output: *mut core::ffi::c_uchar,
-    );
-}
-extern "C" {
-    pub fn sha256_start(ctx: *mut sha256_context);
-}
-extern "C" {
-    pub fn sha256_finish(ctx: *mut sha256_context, output: *mut core::ffi::c_uchar);
-}
-extern "C" {
-    pub fn sha256_update(
-        ctx: *mut sha256_context,
-        input: *const core::ffi::c_uchar,
-        ilen: core::ffi::c_uint,
-    );
-}
-extern "C" {
-    pub fn sha256_process(ctx: *mut sha256_context);
 }
 extern "C" {
     #[doc = "Allocate a file stream with buffered read operations\n\nReturns:\n\n* Stream*\n\n"]
@@ -28988,11 +29945,12 @@ pub struct XtremeSettings {
     pub anim_speed: u32,
     pub cycle_anims: i32,
     pub unlock_anims: bool,
-    pub fallback_anim: bool,
+    pub credits_anim: bool,
     pub menu_style: MenuStyle,
     pub lock_on_boot: bool,
     pub bad_pins_format: bool,
     pub allow_locked_rpc_commands: bool,
+    pub lockscreen_poweroff: bool,
     pub lockscreen_time: bool,
     pub lockscreen_seconds: bool,
     pub lockscreen_date: bool,
@@ -29026,7 +29984,7 @@ fn bindgen_test_layout_XtremeSettings() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::core::mem::size_of::<XtremeSettings>(),
-        88usize,
+        92usize,
         concat!("Size of: ", stringify!(XtremeSettings))
     );
     assert_eq!(
@@ -29085,13 +30043,13 @@ fn bindgen_test_layout_XtremeSettings() {
         )
     );
     assert_eq!(
-        unsafe { ::core::ptr::addr_of!((*ptr).fallback_anim) as usize - ptr as usize },
+        unsafe { ::core::ptr::addr_of!((*ptr).credits_anim) as usize - ptr as usize },
         45usize,
         concat!(
             "Offset of field: ",
             stringify!(XtremeSettings),
             "::",
-            stringify!(fallback_anim)
+            stringify!(credits_anim)
         )
     );
     assert_eq!(
@@ -29135,8 +30093,18 @@ fn bindgen_test_layout_XtremeSettings() {
         )
     );
     assert_eq!(
-        unsafe { ::core::ptr::addr_of!((*ptr).lockscreen_time) as usize - ptr as usize },
+        unsafe { ::core::ptr::addr_of!((*ptr).lockscreen_poweroff) as usize - ptr as usize },
         50usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(XtremeSettings),
+            "::",
+            stringify!(lockscreen_poweroff)
+        )
+    );
+    assert_eq!(
+        unsafe { ::core::ptr::addr_of!((*ptr).lockscreen_time) as usize - ptr as usize },
+        51usize,
         concat!(
             "Offset of field: ",
             stringify!(XtremeSettings),
@@ -29146,7 +30114,7 @@ fn bindgen_test_layout_XtremeSettings() {
     );
     assert_eq!(
         unsafe { ::core::ptr::addr_of!((*ptr).lockscreen_seconds) as usize - ptr as usize },
-        51usize,
+        52usize,
         concat!(
             "Offset of field: ",
             stringify!(XtremeSettings),
@@ -29156,7 +30124,7 @@ fn bindgen_test_layout_XtremeSettings() {
     );
     assert_eq!(
         unsafe { ::core::ptr::addr_of!((*ptr).lockscreen_date) as usize - ptr as usize },
-        52usize,
+        53usize,
         concat!(
             "Offset of field: ",
             stringify!(XtremeSettings),
@@ -29166,7 +30134,7 @@ fn bindgen_test_layout_XtremeSettings() {
     );
     assert_eq!(
         unsafe { ::core::ptr::addr_of!((*ptr).lockscreen_statusbar) as usize - ptr as usize },
-        53usize,
+        54usize,
         concat!(
             "Offset of field: ",
             stringify!(XtremeSettings),
@@ -29176,7 +30144,7 @@ fn bindgen_test_layout_XtremeSettings() {
     );
     assert_eq!(
         unsafe { ::core::ptr::addr_of!((*ptr).lockscreen_prompt) as usize - ptr as usize },
-        54usize,
+        55usize,
         concat!(
             "Offset of field: ",
             stringify!(XtremeSettings),
@@ -29186,7 +30154,7 @@ fn bindgen_test_layout_XtremeSettings() {
     );
     assert_eq!(
         unsafe { ::core::ptr::addr_of!((*ptr).lockscreen_transparent) as usize - ptr as usize },
-        55usize,
+        56usize,
         concat!(
             "Offset of field: ",
             stringify!(XtremeSettings),
@@ -29196,7 +30164,7 @@ fn bindgen_test_layout_XtremeSettings() {
     );
     assert_eq!(
         unsafe { ::core::ptr::addr_of!((*ptr).battery_icon) as usize - ptr as usize },
-        56usize,
+        57usize,
         concat!(
             "Offset of field: ",
             stringify!(XtremeSettings),
@@ -29206,7 +30174,7 @@ fn bindgen_test_layout_XtremeSettings() {
     );
     assert_eq!(
         unsafe { ::core::ptr::addr_of!((*ptr).statusbar_clock) as usize - ptr as usize },
-        57usize,
+        58usize,
         concat!(
             "Offset of field: ",
             stringify!(XtremeSettings),
@@ -29216,7 +30184,7 @@ fn bindgen_test_layout_XtremeSettings() {
     );
     assert_eq!(
         unsafe { ::core::ptr::addr_of!((*ptr).status_icons) as usize - ptr as usize },
-        58usize,
+        59usize,
         concat!(
             "Offset of field: ",
             stringify!(XtremeSettings),
@@ -29226,7 +30194,7 @@ fn bindgen_test_layout_XtremeSettings() {
     );
     assert_eq!(
         unsafe { ::core::ptr::addr_of!((*ptr).bar_borders) as usize - ptr as usize },
-        59usize,
+        60usize,
         concat!(
             "Offset of field: ",
             stringify!(XtremeSettings),
@@ -29236,7 +30204,7 @@ fn bindgen_test_layout_XtremeSettings() {
     );
     assert_eq!(
         unsafe { ::core::ptr::addr_of!((*ptr).bar_background) as usize - ptr as usize },
-        60usize,
+        61usize,
         concat!(
             "Offset of field: ",
             stringify!(XtremeSettings),
@@ -29246,7 +30214,7 @@ fn bindgen_test_layout_XtremeSettings() {
     );
     assert_eq!(
         unsafe { ::core::ptr::addr_of!((*ptr).sort_dirs_first) as usize - ptr as usize },
-        61usize,
+        62usize,
         concat!(
             "Offset of field: ",
             stringify!(XtremeSettings),
@@ -29256,7 +30224,7 @@ fn bindgen_test_layout_XtremeSettings() {
     );
     assert_eq!(
         unsafe { ::core::ptr::addr_of!((*ptr).show_hidden_files) as usize - ptr as usize },
-        62usize,
+        63usize,
         concat!(
             "Offset of field: ",
             stringify!(XtremeSettings),
@@ -29266,7 +30234,7 @@ fn bindgen_test_layout_XtremeSettings() {
     );
     assert_eq!(
         unsafe { ::core::ptr::addr_of!((*ptr).show_internal_tab) as usize - ptr as usize },
-        63usize,
+        64usize,
         concat!(
             "Offset of field: ",
             stringify!(XtremeSettings),
@@ -29276,7 +30244,7 @@ fn bindgen_test_layout_XtremeSettings() {
     );
     assert_eq!(
         unsafe { ::core::ptr::addr_of!((*ptr).favorite_timeout) as usize - ptr as usize },
-        64usize,
+        68usize,
         concat!(
             "Offset of field: ",
             stringify!(XtremeSettings),
@@ -29286,7 +30254,7 @@ fn bindgen_test_layout_XtremeSettings() {
     );
     assert_eq!(
         unsafe { ::core::ptr::addr_of!((*ptr).bad_bt) as usize - ptr as usize },
-        68usize,
+        72usize,
         concat!(
             "Offset of field: ",
             stringify!(XtremeSettings),
@@ -29296,7 +30264,7 @@ fn bindgen_test_layout_XtremeSettings() {
     );
     assert_eq!(
         unsafe { ::core::ptr::addr_of!((*ptr).bad_bt_remember) as usize - ptr as usize },
-        69usize,
+        73usize,
         concat!(
             "Offset of field: ",
             stringify!(XtremeSettings),
@@ -29306,7 +30274,7 @@ fn bindgen_test_layout_XtremeSettings() {
     );
     assert_eq!(
         unsafe { ::core::ptr::addr_of!((*ptr).dark_mode) as usize - ptr as usize },
-        70usize,
+        74usize,
         concat!(
             "Offset of field: ",
             stringify!(XtremeSettings),
@@ -29316,7 +30284,7 @@ fn bindgen_test_layout_XtremeSettings() {
     );
     assert_eq!(
         unsafe { ::core::ptr::addr_of!((*ptr).rgb_backlight) as usize - ptr as usize },
-        71usize,
+        75usize,
         concat!(
             "Offset of field: ",
             stringify!(XtremeSettings),
@@ -29326,7 +30294,7 @@ fn bindgen_test_layout_XtremeSettings() {
     );
     assert_eq!(
         unsafe { ::core::ptr::addr_of!((*ptr).butthurt_timer) as usize - ptr as usize },
-        72usize,
+        76usize,
         concat!(
             "Offset of field: ",
             stringify!(XtremeSettings),
@@ -29336,7 +30304,7 @@ fn bindgen_test_layout_XtremeSettings() {
     );
     assert_eq!(
         unsafe { ::core::ptr::addr_of!((*ptr).charge_cap) as usize - ptr as usize },
-        76usize,
+        80usize,
         concat!(
             "Offset of field: ",
             stringify!(XtremeSettings),
@@ -29346,7 +30314,7 @@ fn bindgen_test_layout_XtremeSettings() {
     );
     assert_eq!(
         unsafe { ::core::ptr::addr_of!((*ptr).spi_cc1101_handle) as usize - ptr as usize },
-        80usize,
+        84usize,
         concat!(
             "Offset of field: ",
             stringify!(XtremeSettings),
@@ -29356,7 +30324,7 @@ fn bindgen_test_layout_XtremeSettings() {
     );
     assert_eq!(
         unsafe { ::core::ptr::addr_of!((*ptr).spi_nrf24_handle) as usize - ptr as usize },
-        81usize,
+        85usize,
         concat!(
             "Offset of field: ",
             stringify!(XtremeSettings),
@@ -29366,7 +30334,7 @@ fn bindgen_test_layout_XtremeSettings() {
     );
     assert_eq!(
         unsafe { ::core::ptr::addr_of!((*ptr).uart_esp_channel) as usize - ptr as usize },
-        82usize,
+        86usize,
         concat!(
             "Offset of field: ",
             stringify!(XtremeSettings),
@@ -29376,7 +30344,7 @@ fn bindgen_test_layout_XtremeSettings() {
     );
     assert_eq!(
         unsafe { ::core::ptr::addr_of!((*ptr).uart_nmea_channel) as usize - ptr as usize },
-        83usize,
+        87usize,
         concat!(
             "Offset of field: ",
             stringify!(XtremeSettings),
@@ -29386,7 +30354,7 @@ fn bindgen_test_layout_XtremeSettings() {
     );
     assert_eq!(
         unsafe { ::core::ptr::addr_of!((*ptr).uart_general_channel) as usize - ptr as usize },
-        84usize,
+        88usize,
         concat!(
             "Offset of field: ",
             stringify!(XtremeSettings),

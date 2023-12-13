@@ -20,7 +20,7 @@ pub type Sha256 = CoreWrapper<Sha256Core>;
 
 /// Core block-level SHA-256 hasher.
 pub struct Sha256Core {
-    state: sys::sha256_context,
+    state: sys::mbedtls_sha256_context,
 }
 
 impl HashMarker for Sha256Core {}
@@ -40,12 +40,13 @@ impl OutputSizeUser for Sha256Core {
 impl Default for Sha256Core {
     #[inline]
     fn default() -> Self {
-        let mut state = sys::sha256_context {
-            total: [0; 2],
-            state: [0; 8],
-            wbuf: [0; 16],
+        let mut state = sys::mbedtls_sha256_context {
+            private_total: [0; 2],
+            private_state: [0; 8],
+            private_buffer: [0; 64],
+            private_is224: 0,
         };
-        unsafe { sys::sha256_start(&mut state) };
+        unsafe { sys::mbedtls_sha256_starts(&mut state, 0) };
         Self { state }
     }
 }
@@ -54,18 +55,18 @@ impl UpdateCore for Sha256Core {
     #[inline]
     fn update_blocks(&mut self, blocks: &[Block<Self>]) {
         for block in blocks {
-            self.state.total[0] += Self::BlockSize::U32; // i.e. 64u32
-            if self.state.total[0] < Self::BlockSize::U32 {
-                self.state.total[1] += 1;
+            self.state.private_total[0] += Self::BlockSize::U32; // i.e. 64u32
+            if self.state.private_total[0] < Self::BlockSize::U32 {
+                self.state.private_total[1] += 1;
             }
 
             unsafe {
                 core::ptr::copy_nonoverlapping(
                     block.as_ptr(),
-                    self.state.wbuf.as_mut_ptr().cast(),
+                    self.state.private_buffer.as_mut_ptr().cast(),
                     Self::BlockSize::USIZE,
                 );
-                sys::sha256_process(&mut self.state);
+                sys::mbedtls_internal_sha256_process(&mut self.state, block.as_ptr());
             }
         }
     }
@@ -75,12 +76,12 @@ impl FixedOutputCore for Sha256Core {
     #[inline]
     fn finalize_fixed_core(&mut self, buffer: &mut Buffer<Self>, out: &mut Output<Self>) {
         unsafe {
-            sys::sha256_update(
+            sys::mbedtls_sha256_update(
                 &mut self.state,
                 buffer.get_data().as_ptr(),
-                buffer.get_data().len() as u32,
+                buffer.get_data().len(),
             );
-            sys::sha256_finish(&mut self.state, out.as_mut_ptr());
+            sys::mbedtls_sha256_finish(&mut self.state, out.as_mut_ptr());
         }
     }
 }

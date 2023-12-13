@@ -36,7 +36,7 @@ pub type Md5 = CoreWrapper<Md5Core>;
 
 /// Core MD5 hasher.
 pub struct Md5Core {
-    state: sys::md5_context,
+    state: sys::mbedtls_md5_context,
 }
 
 impl HashMarker for Md5Core {}
@@ -56,12 +56,12 @@ impl OutputSizeUser for Md5Core {
 impl Default for Md5Core {
     #[inline]
     fn default() -> Self {
-        let mut state = sys::md5_context {
-            total: [0; 2],
-            state: [0; 4],
-            buffer: [0; 64],
+        let mut state = sys::mbedtls_md5_context {
+            private_total: [0; 2],
+            private_state: [0; 4],
+            private_buffer: [0; 64],
         };
-        unsafe { sys::md5_starts(&mut state) };
+        unsafe { sys::mbedtls_md5_starts(&mut state) };
         Self { state }
     }
 }
@@ -70,11 +70,11 @@ impl UpdateCore for Md5Core {
     #[inline]
     fn update_blocks(&mut self, blocks: &[Block<Self>]) {
         for block in blocks {
-            self.state.total[0] += Self::BlockSize::U32; // i.e. 64u32
-            if self.state.total[0] < Self::BlockSize::U32 {
-                self.state.total[1] += 1;
+            self.state.private_total[0] += Self::BlockSize::U32; // i.e. 64u32
+            if self.state.private_total[0] < Self::BlockSize::U32 {
+                self.state.private_total[1] += 1;
             }
-            unsafe { sys::md5_process(&mut self.state, block.as_ptr()) };
+            unsafe { sys::mbedtls_internal_md5_process(&mut self.state, block.as_ptr()) };
         }
     }
 }
@@ -83,12 +83,12 @@ impl FixedOutputCore for Md5Core {
     #[inline]
     fn finalize_fixed_core(&mut self, buffer: &mut Buffer<Self>, out: &mut Output<Self>) {
         unsafe {
-            sys::md5_update(
+            sys::mbedtls_md5_update(
                 &mut self.state,
                 buffer.get_data().as_ptr(),
                 buffer.get_data().len(),
             );
-            sys::md5_finish(&mut self.state, out.as_mut_ptr());
+            sys::mbedtls_md5_finish(&mut self.state, out.as_mut_ptr());
         }
     }
 }

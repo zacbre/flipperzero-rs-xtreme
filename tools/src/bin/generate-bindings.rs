@@ -21,7 +21,7 @@ const TOOLCHAIN: &str = "../../../toolchain/i686-linux/arm-none-eabi/include";
 #[cfg(all(unix, target_arch = "x86_64"))]
 const TOOLCHAIN: &str = "../../../toolchain/x86_64-linux/arm-none-eabi/include";
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
-const TOOLCHAIN: &str = "~/.ufbt/toolchain/x86_64-darwin/arm-none-eabi/include";
+const TOOLCHAIN: &str = "/Users/zac/.ufbt/toolchain/x86_64-darwin/arm-none-eabi/include";
 const VISIBILITY_PUBLIC: &str = "+";
 
 #[derive(Debug)]
@@ -169,6 +169,7 @@ fn main() {
     // Load SDK symbols
     let symbols = load_symbols(sdk.join(replace_sdk_root_dir(&sdk_opts.sdk_symbols)));
     let bindings_header = generate_bindings_header(&symbols);
+    println!("{}", bindings_header);
 
     // Some of the values are shell-quoted
     let cc_flags = shlex::split(&sdk_opts.cc_args).expect("failed to split sdk.opts cc_args");
